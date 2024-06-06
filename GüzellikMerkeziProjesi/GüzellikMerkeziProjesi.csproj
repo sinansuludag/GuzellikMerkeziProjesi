@@ -1,0 +1,362 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A07C4B58-AADB-4467-BA21-AF3A59D6467E}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>GüzellikMerkeziProjesi</RootNamespace>
+    <AssemblyName>GüzellikMerkeziProjesi</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="BouncyCastle.Cryptography, Version=2.0.0.0, Culture=neutral, PublicKeyToken=072edcf4a5328938, processorArchitecture=MSIL">
+      <HintPath>..\packages\BouncyCastle.Cryptography.2.4.0\lib\net461\BouncyCastle.Cryptography.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Protobuf, Version=3.25.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
+      <HintPath>..\packages\Google.Protobuf.3.25.1\lib\net45\Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="K4os.Compression.LZ4, Version=1.3.5.0, Culture=neutral, PublicKeyToken=2186fa9121ef231d, processorArchitecture=MSIL">
+      <HintPath>..\packages\K4os.Compression.LZ4.1.3.5\lib\net462\K4os.Compression.LZ4.dll</HintPath>
+    </Reference>
+    <Reference Include="K4os.Compression.LZ4.Streams, Version=1.3.5.0, Culture=neutral, PublicKeyToken=2186fa9121ef231d, processorArchitecture=MSIL">
+      <HintPath>..\packages\K4os.Compression.LZ4.Streams.1.3.5\lib\net462\K4os.Compression.LZ4.Streams.dll</HintPath>
+    </Reference>
+    <Reference Include="K4os.Hash.xxHash, Version=1.0.8.0, Culture=neutral, PublicKeyToken=32cd54395057cec3, processorArchitecture=MSIL">
+      <HintPath>..\packages\K4os.Hash.xxHash.1.0.8\lib\net462\K4os.Hash.xxHash.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Bcl.HashCode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.HashCode.1.1.0\lib\net461\Microsoft.Bcl.HashCode.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.EntityFrameworkCore, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.EntityFrameworkCore.3.1.1\lib\netstandard2.0\Microsoft.EntityFrameworkCore.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.EntityFrameworkCore.Abstractions, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.EntityFrameworkCore.Abstractions.3.1.1\lib\netstandard2.0\Microsoft.EntityFrameworkCore.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.EntityFrameworkCore.Relational, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.EntityFrameworkCore.Relational.3.1.1\lib\netstandard2.0\Microsoft.EntityFrameworkCore.Relational.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Caching.Abstractions, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Caching.Abstractions.3.1.1\lib\netstandard2.0\Microsoft.Extensions.Caching.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Caching.Memory, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Caching.Memory.3.1.1\lib\netstandard2.0\Microsoft.Extensions.Caching.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Configuration, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Configuration.3.1.1\lib\netstandard2.0\Microsoft.Extensions.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Configuration.Abstractions, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Configuration.Abstractions.3.1.1\lib\netstandard2.0\Microsoft.Extensions.Configuration.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Configuration.Binder, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Configuration.Binder.3.1.1\lib\netstandard2.0\Microsoft.Extensions.Configuration.Binder.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.3.1.1\lib\net461\Microsoft.Extensions.DependencyInjection.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.3.1.1\lib\netstandard2.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Logging, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Logging.3.1.1\lib\netstandard2.0\Microsoft.Extensions.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=7.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.7.0.1\lib\net462\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Options, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Options.3.1.1\lib\netstandard2.0\Microsoft.Extensions.Options.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Extensions.Primitives, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Primitives.3.1.1\lib\netstandard2.0\Microsoft.Extensions.Primitives.dll</HintPath>
+    </Reference>
+    <Reference Include="MySql.Data, Version=8.3.0.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <HintPath>..\packages\MySql.Data.8.3.0\lib\net462\MySql.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="MySql.Data.EntityFrameworkCore, Version=8.0.22.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <HintPath>..\packages\MySql.Data.EntityFrameworkCore.8.0.22\lib\netstandard2.0\MySql.Data.EntityFrameworkCore.dll</HintPath>
+    </Reference>
+    <Reference Include="MySqlBackup, Version=2.3.8.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MySqlBackup.NET.2.3.8\lib\netstandard2.0\MySqlBackup.dll</HintPath>
+    </Reference>
+    <Reference Include="MySqlConnector, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d33d3e53aa5f8c92, processorArchitecture=MSIL">
+      <HintPath>..\packages\MySqlConnector.2.3.6\lib\net471\MySqlConnector.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Collections.Immutable, Version=1.2.5.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Collections.Immutable.1.7.0\lib\netstandard2.0\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.Annotations, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ComponentModel.Annotations.4.7.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Configuration.ConfigurationManager, Version=4.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Configuration.ConfigurationManager.4.4.1\lib\net461\System.Configuration.ConfigurationManager.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="System.Diagnostics.DiagnosticSource, Version=7.0.0.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.7.0.2\lib\net462\System.Diagnostics.DiagnosticSource.dll</HintPath>
+    </Reference>
+    <Reference Include="System.IO.Pipelines, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.Pipelines.8.0.0\lib\net462\System.IO.Pipelines.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Management" />
+    <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="ZstdSharp, Version=0.7.1.0, Culture=neutral, PublicKeyToken=8d151af33a4ad5cf, processorArchitecture=MSIL">
+      <HintPath>..\packages\ZstdSharp.Port.0.7.1\lib\net461\ZstdSharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Anasayfa.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Anasayfa.Designer.cs">
+      <DependentUpon>Anasayfa.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ConnectionAndStaticTools.cs" />
+    <Compile Include="DanisanBilgileri.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DanisanBilgileri.Designer.cs">
+      <DependentUpon>DanisanBilgileri.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DanisanBul.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DanisanBul.Designer.cs">
+      <DependentUpon>DanisanBul.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DanisanKayit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="DanisanKayit.Designer.cs">
+      <DependentUpon>DanisanKayit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Kasa.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Kasa.Designer.cs">
+      <DependentUpon>Kasa.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NotOlustur.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NotOlustur.Designer.cs">
+      <DependentUpon>NotOlustur.cs</DependentUpon>
+    </Compile>
+    <Compile Include="OdemeAl.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="OdemeAl.Designer.cs">
+      <DependentUpon>OdemeAl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PaketBilgisi.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TutarGuncelle.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TutarGuncelle.Designer.cs">
+      <DependentUpon>TutarGuncelle.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UrunSat.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UrunSat.Designer.cs">
+      <DependentUpon>UrunSat.cs</DependentUpon>
+    </Compile>
+    <Compile Include="YedekleKontrol.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="YedekleKontrol.Designer.cs">
+      <DependentUpon>YedekleKontrol.cs</DependentUpon>
+    </Compile>
+    <Compile Include="YeniPaketTanimlama.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="YeniPaketTanimlama.Designer.cs">
+      <DependentUpon>YeniPaketTanimlama.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="Anasayfa.resx">
+      <DependentUpon>Anasayfa.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DanisanBilgileri.resx">
+      <DependentUpon>DanisanBilgileri.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DanisanBul.resx">
+      <DependentUpon>DanisanBul.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="DanisanKayit.resx">
+      <DependentUpon>DanisanKayit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Kasa.resx">
+      <DependentUpon>Kasa.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NotOlustur.resx">
+      <DependentUpon>NotOlustur.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="OdemeAl.resx">
+      <DependentUpon>OdemeAl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <EmbeddedResource Include="TutarGuncelle.resx">
+      <DependentUpon>TutarGuncelle.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UrunSat.resx">
+      <DependentUpon>UrunSat.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="YedekleKontrol.resx">
+      <DependentUpon>YedekleKontrol.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="YeniPaketTanimlama.resx">
+      <DependentUpon>YeniPaketTanimlama.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="packages.config" />
+    <None Include="Properties\DataSources\Anasayfa.datasource" />
+    <None Include="Properties\DataSources\ConnectionTools.datasource" />
+    <None Include="Properties\DataSources\DanisanBilgileri.datasource" />
+    <None Include="Properties\DataSources\DanisanBul.datasource" />
+    <None Include="Properties\DataSources\DanisanKayit.datasource" />
+    <None Include="Properties\DataSources\GüzellikMerkeziProjesi.Properties.Resources.datasource" />
+    <None Include="Properties\DataSources\GüzellikMerkeziProjesi.Properties.Settings.datasource" />
+    <None Include="Properties\DataSources\Kasa.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.Authentication.AuthenticationPlugins.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.Authentication.IAuthenticationPlugin.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.Logging.ConsoleLoggerProvider.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.Logging.IMySqlConnectorLogger.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.Logging.IMySqlConnectorLoggerProvider.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.Logging.MySqlConnectorLogManager.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.Logging.NoOpLogger.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.Logging.NoOpLoggerProvider.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlAttribute.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlAttributeCollection.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlBatch.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlBatchCommand.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlBatchCommandCollection.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlBulkCopy.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlBulkCopyColumnMapping.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlBulkCopyResult.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlBulkLoader.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlCommand.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlCommandBuilder.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlConnection.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlConnectionStringBuilder.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlConnectorFactory.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlConversionException.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlDataAdapter.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlDataReader.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlDataSource.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlDataSourceBuilder.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlDateTime.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlDbColumn.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlDecimal.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlEndOfStreamException.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlError.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlException.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlGeometry.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlHelper.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlInfoMessageEventArgs.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlInfoMessageEventHandler.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlParameter.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlParameterCollection.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlProtocolException.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlProvidePasswordContext.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlRowsCopiedEventArgs.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlRowsCopiedEventHandler.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlRowUpdatedEventArgs.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlRowUpdatedEventHandler.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlRowUpdatingEventArgs.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlRowUpdatingEventHandler.datasource" />
+    <None Include="Properties\DataSources\MySqlConnector.MySqlTransaction.datasource" />
+    <None Include="Properties\DataSources\NotOlustur.datasource" />
+    <None Include="Properties\DataSources\OdemeAl.datasource" />
+    <None Include="Properties\DataSources\PaketBilgisi.datasource" />
+    <None Include="Properties\DataSources\Program.datasource" />
+    <None Include="Properties\DataSources\System.Data.Common.DbDataSource.datasource" />
+    <None Include="Properties\DataSources\UrunSat.datasource" />
+    <None Include="Properties\DataSources\YeniPaketTanimlama.datasource" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\DERMALZ-LOGO.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\DERMALZ-LOGO1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
