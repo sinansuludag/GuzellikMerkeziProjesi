@@ -70,9 +70,23 @@ namespace GüzellikMerkeziProjesi
 
         DataView filtrele()
         {
-            DataView dv=new DataView();
+            DataView dv = new DataView();
             dv = dt.DefaultView;
-            dv.RowFilter = "Adi like '" + txtBul.Text + "%'";
+
+            // Arama metnini parçalayarak boşlukları kontrol edin
+            string[] searchTerms = txtBul.Text.Split(' ');
+
+            if (searchTerms.Length == 1)
+            {
+                // Sadece bir isim girildiyse, adı filtreleyin
+                dv.RowFilter = $"Adi LIKE '{searchTerms[0]}%' OR Soyadi LIKE '{searchTerms[0]}%'";
+            }
+            else if (searchTerms.Length > 1)
+            {
+                // Hem isim hem soyad girildiyse, her iki alanı da filtreleyin
+                dv.RowFilter = $"Adi LIKE '{searchTerms[0]}%' AND Soyadi LIKE '{searchTerms[1]}%'";
+            }
+
             return dv;
         }
 
