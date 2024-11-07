@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Drawing;
 using System.Linq;
@@ -36,14 +37,40 @@ namespace GüzellikMerkeziProjesi
 
         public void notlariListele(int danisanID)
         {
-            MySqlDataAdapter adapter = new MySqlDataAdapter("SELECT * FROM dbnotlar WHERE ID = @ID", ConnectionAndStaticTools.Connection);
-            adapter.SelectCommand.Parameters.AddWithValue("@ID", danisanID);
+            try
+            {
+                // Bağlantıyı açık olduğundan emin olun
+                ConnectionAndStaticTools.OpenConnection();
 
-            DataTable dt = new DataTable();
-            adapter.Fill(dt);
-            dataGridView2.DataSource = dt;
+                // Veritabanı bağlantısı ve komut oluşturuluyor
+                MySqlDataAdapter adapter = new MySqlDataAdapter("SELECT * FROM dbnotlar WHERE ID = @ID", ConnectionAndStaticTools.Connection);
+                adapter.SelectCommand.Parameters.AddWithValue("@ID", danisanID);
 
+                DataTable dt = new DataTable();
+
+                // Veritabanından veri alınıyor
+                adapter.Fill(dt);
+
+                // Veriler DataGridView'e aktarılıyor
+                dataGridView2.DataSource = dt;
+            }
+            catch (MySqlException sqlEx)
+            {
+                // Veritabanı hatalarını yakalama
+                MessageBox.Show($"NOTLARI LISTELE Veritabanı hatası: {sqlEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                // Genel hataları yakalama
+                MessageBox.Show($"NOTLARI LISTELE  hata oluştu: {ex.Message}");
+            }
+            finally
+            {
+                // Bağlantıyı kapatıyoruz
+                ConnectionAndStaticTools.CloseConnection();
+            }
         }
+
 
 
 
@@ -51,10 +78,14 @@ namespace GüzellikMerkeziProjesi
         {
             try
             {
+                // Veritabanı bağlantısını açıyoruz
+                ConnectionAndStaticTools.OpenConnection();
+
                 // Veritabanından verileri al
                 DataTable dt = new DataTable();
                 using (MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter("SELECT * from dbpaketbilgisi where ID=@DanisanID", ConnectionAndStaticTools.Connection))
                 {
+                    // Parametreyi ekleyerek sorguyu çalıştırıyoruz
                     mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@DanisanID", danisanID);
                     mySqlDataAdapter.Fill(dt);
                 }
@@ -83,7 +114,7 @@ namespace GüzellikMerkeziProjesi
                 dataGridView1.Columns["Tutar"].Width = 70;
                 dataGridView1.Columns["Aciklama"].Width = 370;
 
-                //Sıralamayı onle
+                // Sıralamayı engelle
                 dataGridView1.Columns["ID"].SortMode = DataGridViewColumnSortMode.NotSortable;
                 dataGridView1.Columns["Tarih"].SortMode = DataGridViewColumnSortMode.NotSortable;
                 dataGridView1.Columns["Seans/Kontrol"].SortMode = DataGridViewColumnSortMode.NotSortable;
@@ -92,11 +123,23 @@ namespace GüzellikMerkeziProjesi
                 dataGridView1.Columns["Aciklama"].SortMode = DataGridViewColumnSortMode.NotSortable;
 
             }
+            catch (MySqlException sqlEx)
+            {
+                // MySQL veritabanı hatası
+                MessageBox.Show("SEANS BİLGİLERİ GETİR Veritabanı hatası: " + sqlEx.Message);
+            }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata: " + ex.Message);
+                // Genel hatalar
+                MessageBox.Show("SEANS BILGILERI GETIR hata oluştu: " + ex.Message);
+            }
+            finally
+            {
+                // Bağlantıyı kapatıyoruz
+                ConnectionAndStaticTools.CloseConnection();
             }
         }
+
 
         //Gelinen seans için o satırın arka plan rengi kırmızı olsun
         private void dataGridView1_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
@@ -128,116 +171,155 @@ namespace GüzellikMerkeziProjesi
         }
 
 
-
-
-
-
         public void notBilgisiniGetir(int danisanID)
         {
             try
             {
-                MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter("SELECT * from dbnotlar where ID=@DanisanID", ConnectionAndStaticTools.Connection);
-                mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@DanisanID", danisanID);
+                // Veritabanı bağlantısını açma
+                ConnectionAndStaticTools.OpenConnection();
 
-                DataTable dt = new DataTable();
-                mySqlDataAdapter.Fill(dt);
-                dataGridView2.DataSource = dt;
-                dataGridView2.BackgroundColor = Color.White;
-                dataGridView2.DefaultCellStyle.SelectionBackColor = Color.FromArgb(0, 139, 139);
-                //Sıralamayı kaldır
-                dataGridView2.Columns["ID"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                dataGridView2.Columns["Notlar"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                //Hücre genişliği 
-                dataGridView2.Columns["ID"].Width = 50;
-                dataGridView2.Columns["Notlar"].Width = 600;
-            
+                // MySqlDataAdapter ile veriyi çekme işlemi
+                using (MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter("SELECT * from dbnotlar where ID=@DanisanID", ConnectionAndStaticTools.Connection))
+                {
+                    mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@DanisanID", danisanID);
 
+                    // DataTable ile veriyi doldurma
+                    DataTable dt = new DataTable();
+                    mySqlDataAdapter.Fill(dt);
+
+                    // DataGridView'e veri kaynağını bağlama
+                    dataGridView2.DataSource = dt;
+
+                    // DataGridView özelliklerini ayarlama
+                    dataGridView2.BackgroundColor = Color.White;
+                    dataGridView2.DefaultCellStyle.SelectionBackColor = Color.FromArgb(0, 139, 139);
+
+                    // Sıralamayı kaldırma
+                    dataGridView2.Columns["ID"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                    dataGridView2.Columns["Notlar"].SortMode = DataGridViewColumnSortMode.NotSortable;
+
+                    // Hücre genişliklerini ayarlama
+                    dataGridView2.Columns["ID"].Width = 50;
+                    dataGridView2.Columns["Notlar"].Width = 600;
+                }
+            }
+            catch (MySqlException ex)
+            {
+                // MySQL hatası
+                MessageBox.Show("NOT BILGISINI GETIR Veritabanı hatası: " + ex.Message);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata: " + ex.Message);
+                // Genel hata
+                MessageBox.Show("NOT BILGISINI GETIR Hata: " + ex.Message);
+            }
+            finally
+            {
+                // Bağlantıyı kapatma
+                ConnectionAndStaticTools.CloseConnection();
             }
         }
+
 
         public void alinanOdemeBilgisiniGetir(int danisanID)
         {
             try
             {
-                MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter("SELECT * from dbalinanodemeler where ID=@DanisanID", ConnectionAndStaticTools.Connection);
-                mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@DanisanID", danisanID);
+                // Veritabanı bağlantısını açma
+                ConnectionAndStaticTools.OpenConnection();
 
-                DataTable dt = new DataTable();
-                mySqlDataAdapter.Fill(dt);
-                dataGridView3.DataSource = dt;
-                dataGridView3.BackgroundColor = Color.White;
-                dataGridView3.DefaultCellStyle.SelectionBackColor = Color.FromArgb(0, 139, 139);
-                dataGridView3.Columns["ID"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                dataGridView3.Columns["Tarih"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                dataGridView3.Columns["Aciklama"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                dataGridView3.Columns["OdemeTipi"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                dataGridView3.Columns["Tutar"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                dataGridView3.Columns["ID"].Width = 50;
-                dataGridView3.Columns["Tarih"].Width = 90;
-                dataGridView3.Columns["Aciklama"].Width = 500;
-                dataGridView3.Columns["OdemeTipi"].Width = 90;
-                dataGridView3.Columns["Tutar"].Width = 60;
+                // MySqlDataAdapter ile veriyi çekme işlemi
+                using (MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter("SELECT * from dbalinanodemeler where ID=@DanisanID", ConnectionAndStaticTools.Connection))
+                {
+                    mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@DanisanID", danisanID);
 
+                    // DataTable ile veriyi doldurma
+                    DataTable dt = new DataTable();
+                    mySqlDataAdapter.Fill(dt);
+
+                    // DataGridView'e veri kaynağını bağlama
+                    dataGridView3.DataSource = dt;
+                    dataGridView3.BackgroundColor = Color.White;
+                    dataGridView3.DefaultCellStyle.SelectionBackColor = Color.FromArgb(0, 139, 139);
+
+                    // Sıralamayı kaldırma
+                    dataGridView3.Columns["ID"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                    dataGridView3.Columns["Tarih"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                    dataGridView3.Columns["Aciklama"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                    dataGridView3.Columns["OdemeTipi"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                    dataGridView3.Columns["Tutar"].SortMode = DataGridViewColumnSortMode.NotSortable;
+
+                    // Hücre genişliklerini ayarlama
+                    dataGridView3.Columns["ID"].Width = 50;
+                    dataGridView3.Columns["Tarih"].Width = 90;
+                    dataGridView3.Columns["Aciklama"].Width = 500;
+                    dataGridView3.Columns["OdemeTipi"].Width = 90;
+                    dataGridView3.Columns["Tutar"].Width = 60;
+                }
+            }
+            catch (MySqlException ex)
+            {
+                // MySQL hatası
+                MessageBox.Show("ALINAN ODEME BILGISI Veritabanı hatası: " + ex.Message);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata: " + ex.Message);
+                // Genel hata
+                MessageBox.Show("ALINAN ODEME BILGISI Hata: " + ex.Message);
+            }
+            finally
+            {
+                // Bağlantıyı kapatma
+                ConnectionAndStaticTools.CloseConnection();
             }
         }
 
-        
+
 
         public void DanisanBilgileriniGoster(int danisanId)
         {
-            ConnectionAndStaticTools.OpenConnection();
-            MySqlCommand cmd = new MySqlCommand("SELECT * FROM dbdanisankayit WHERE DanisanID = @DanisanId", ConnectionAndStaticTools.Connection);
-            cmd.Parameters.AddWithValue("@DanisanId", danisanId);
-
-            MySqlDataReader reader = cmd.ExecuteReader();
-            if (reader.Read())
+            try
             {
-                txtId.Text = reader["DanisanID"].ToString();
-                txtAdi.Text = reader["Adi"].ToString();
-                txtSoyadi.Text = reader["Soyadi"].ToString();
-                txtTel.Text = reader["Telefon"].ToString();
-                txtCinsiyet.Text = reader["Cinsiyet"].ToString();
-                txtReferans.Text = reader["Referans"].ToString();
-                string[] diziUcret = reader["İslem"].ToString().Split(':');
-                float toplam = 0;
-                string[] diziUcret2;
-                float ucret = 0;
-                foreach (string d in diziUcret)
+                // Veritabanı bağlantısını açma
+                ConnectionAndStaticTools.OpenConnection();
+
+                // MySQL komutu oluşturma
+                MySqlCommand cmd = new MySqlCommand("SELECT * FROM dbdanisankayit WHERE DanisanID = @DanisanId", ConnectionAndStaticTools.Connection);
+                cmd.Parameters.AddWithValue("@DanisanId", danisanId);
+
+                // Veriyi okuma
+                MySqlDataReader reader = cmd.ExecuteReader();
+                if (reader.Read())
                 {
-                    diziUcret2 = d.Split(',');
-                    if (diziUcret2.Length == 3)
+                    // Verileri arayüze yazma
+                    txtId.Text = reader["DanisanID"].ToString();
+                    txtAdi.Text = reader["Adi"].ToString();
+                    txtSoyadi.Text = reader["Soyadi"].ToString();
+                    txtTel.Text = reader["Telefon"].ToString();
+                    txtCinsiyet.Text = reader["Cinsiyet"].ToString();
+                    txtReferans.Text = reader["Referans"].ToString();
+
+                    // İşlem ücretlerini hesaplama
+                    string[] diziUcret = reader["İslem"].ToString().Split(':');
+                    float toplam = 0;
+                    foreach (string d in diziUcret)
                     {
-                        ucret = float.Parse(diziUcret2[2]);
-                        toplam += ucret;
+                        string[] diziUcret2 = d.Split(',');
+                        if (diziUcret2.Length == 3)
+                        {
+                            if (float.TryParse(diziUcret2[2], out float ucret)) // Ucretin geçerli olup olmadığını kontrol et
+                            {
+                                toplam += ucret;
+                            }
+                        }
                     }
-                    else
-                    {
 
-                    }
-                    
-                }
-                txtTopTutar.Text = toplam.ToString();
+                    // Toplam ücreti arayüze yazma
+                    txtTopTutar.Text = toplam.ToString();
 
-                ConnectionAndStaticTools.CloseConnection();
-                try
-                {
-
+                    // Ödeme bilgisini hesaplama
                     float alOdeme = alinanOdemeTutari(danisanId);
-                    if (toplam - alOdeme == 0)
-                    {
-
-                        txtKalanOdeme.Text = "0";
-                        txtAlOdeme.Text = alOdeme.ToString();
-                    }
-                    else if (toplam - alOdeme < 0)
+                    if (toplam - alOdeme <= 0)
                     {
                         txtKalanOdeme.Text = "0";
                         txtAlOdeme.Text = alOdeme.ToString();
@@ -247,49 +329,84 @@ namespace GüzellikMerkeziProjesi
                         txtKalanOdeme.Text = (toplam - alOdeme).ToString();
                         txtAlOdeme.Text = alOdeme.ToString();
                     }
-
-
                 }
-                catch (Exception ex)
+                else
                 {
-                    MessageBox.Show("Hata: " + ex.StackTrace);
+                    // Danışman bulunamadıysa hata mesajı
+                    MessageBox.Show("Danışan bulunamadı.");
                 }
-
-
             }
-
-
+            catch (MySqlException ex)
+            {
+                // MySQL hatası
+                MessageBox.Show("DANISAN BILGILERINI GOSTER Veritabanı hatası: " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Genel hata
+                MessageBox.Show("DANISAN BILGILERINI GOSTER Hata: " + ex.Message);
+            }
+            finally
+            {
+                // Bağlantıyı kapatma
+                ConnectionAndStaticTools.CloseConnection();
+            }
         }
+
 
         public float alinanOdemeTutari(int danisanID)
         {
             float toplam = 0f;
             try
             {
-                ConnectionAndStaticTools.OpenConnection();
-                using (MySqlCommand mySqlCommand = new MySqlCommand("SELECT * FROM dbalinanodemeler WHERE ID = @DanisanId", ConnectionAndStaticTools.Connection))
+                // Her işlem için yeni bir bağlantı açıyoruz
+                using (var connection = new MySqlConnection(ConfigurationManager.ConnectionStrings["Baglanti"].ConnectionString))
                 {
-                    mySqlCommand.Parameters.AddWithValue("@DanisanId", danisanID);
+                    connection.Open();  // Bağlantıyı aç
 
-                    using (MySqlDataReader reader = mySqlCommand.ExecuteReader())
+                    // Veritabanından verileri almak için sorgu oluştur
+                    using (MySqlCommand mySqlCommand = new MySqlCommand("SELECT * FROM dbalinanodemeler WHERE ID = @DanisanId", connection))
                     {
-                        while (reader.Read())
+                        mySqlCommand.Parameters.AddWithValue("@DanisanId", danisanID);
+
+                        // MySqlDataReader kullanarak verileri çek
+                        using (MySqlDataReader reader = mySqlCommand.ExecuteReader())
                         {
-                            toplam += float.Parse(reader["Tutar"].ToString());
+                            while (reader.Read())
+                            {
+                                // Tutar değeri string olarak alınıyor
+                                string tutarStr = reader["Tutar"].ToString();
+
+                                // string değeri float'a dönüştür
+                                if (float.TryParse(tutarStr, out float tutar))
+                                {
+                                    toplam += tutar;  // Eğer geçerli bir float ise, toplamı artır
+                                }
+                                else
+                                {
+                                    // Eğer dönüşüm başarısız olursa, loglama yapılabilir veya kullanıcıya mesaj gösterilebilir
+                                    MessageBox.Show($"Geçersiz tutar değeri: {tutarStr}");
+                                }
+                            }
                         }
                     }
                 }
             }
-            catch (Exception e)
+            catch (MySqlException mySqlEx)
             {
-                MessageBox.Show("Hata:" + e.StackTrace);
+                // MySQL hatalarını burada yakalayabilirsiniz
+                MessageBox.Show("ALINAN ODEME TUTARI Veritabanı Hatası: " + mySqlEx.Message);
             }
-            finally
+            catch (Exception ex)
             {
-                ConnectionAndStaticTools.CloseConnection();
+                // Diğer hataları burada yakalayabilirsiniz
+                MessageBox.Show("ALINAN ODEME TUTARI Hata: " + ex.Message);
             }
+
             return toplam;
         }
+
+
 
 
 
@@ -323,30 +440,54 @@ namespace GüzellikMerkeziProjesi
         {
             try
             {
+                try
+                {
+                    // Veritabanı bağlantısını aç
                     ConnectionAndStaticTools.OpenConnection();
-                    MySqlCommand cmd = new MySqlCommand("Update dbdanisankayit set Adi=@Adi,Soyadi=@Soyadi,Telefon=@Telefon,Cinsiyet=@Cinsiyet," +
-                        "Referans=@Referans where DanisanID=@ID", ConnectionAndStaticTools.Connection);
+
+                    // SQL güncelleme komutunu oluştur
+                    MySqlCommand cmd = new MySqlCommand(
+                        "Update dbdanisankayit set Adi=@Adi, Soyadi=@Soyadi, Telefon=@Telefon, Cinsiyet=@Cinsiyet, Referans=@Referans where DanisanID=@ID",
+                        ConnectionAndStaticTools.Connection);
+
+                    // Parametreleri ekle
                     cmd.Parameters.AddWithValue("@ID", id);
                     cmd.Parameters.AddWithValue("@Adi", txtAdi.Text);
                     cmd.Parameters.AddWithValue("@Soyadi", txtSoyadi.Text);
                     cmd.Parameters.AddWithValue("@Telefon", txtTel.Text);
                     cmd.Parameters.AddWithValue("@Cinsiyet", txtCinsiyet.Text);
                     cmd.Parameters.AddWithValue("@Referans", txtReferans.Text);
-                    cmd.ExecuteNonQuery();
 
-
-            }catch(Exception e)
-            {
-                MessageBox.Show("Hata:" + e.Message);
+                    // Sorguyu çalıştır
+                     cmd.ExecuteNonQuery();              
+                }
+                catch (MySqlException mysqlEx)
+                {
+                    // Veritabanı hatalarını yakala
+                    MessageBox.Show("DANISMAN BILGISI GUNCELLE Veritabanı hatası: " + mysqlEx.Message);
+                }
+                catch (Exception ex)
+                {
+                    // Diğer hataları yakala
+                    MessageBox.Show("DANISMAN BILGISI GUNCELLE Hata: " + ex.Message);
+                }
+                finally
+                {
+                    // Bağlantıyı kapat
+                    ConnectionAndStaticTools.CloseConnection();
+                }
             }
-            finally 
-            { 
-               ConnectionAndStaticTools.CloseConnection();
+            catch (Exception ex)
+            {
+                // Genel hata kontrolü (genellikle try-catch'in dışı için gereksiz olabilir, burada başka bir hata yakalanabilir)
+                MessageBox.Show("DANISMAN BILGISI GUNCELLE GENEL hata oluştu: " + ex.Message);
             }
         }
 
+        // Danışan kayıt silme
         private void btnSil_Click(object sender, EventArgs e)
-        {// Kullanıcıya silme işlemi için onay mesajı göster
+        {
+            // Kullanıcıya silme işlemi için onay mesajı göster
             DialogResult result = MessageBox.Show("Danışana ait tüm verileri kalıcı olarak silmek istediğinizden emin misiniz?", "Onay", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             // Kullanıcının seçimine göre işlemi gerçekleştir
@@ -354,22 +495,44 @@ namespace GüzellikMerkeziProjesi
             {
                 try
                 {
+                    // Veritabanı bağlantısını aç
                     ConnectionAndStaticTools.OpenConnection();
+
+                    // SQL komutunu oluştur
                     MySqlCommand cmd = new MySqlCommand("DELETE FROM dbdanisankayit WHERE DanisanID = @ID", ConnectionAndStaticTools.Connection);
                     cmd.Parameters.AddWithValue("@ID", id);
-                    cmd.ExecuteNonQuery();
-                    temizle();
-                    MessageBox.Show("Kayıt başarıyla silindi.");
-                    Anasayfa anasayfa = new Anasayfa();
-                    anasayfa.Show();
-                    this.Hide();
+
+                    // Silme işlemini gerçekleştir
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        // Silme başarılı ise
+                        temizle();
+                        MessageBox.Show("Kayıt başarıyla silindi.");
+                        Anasayfa anasayfa = new Anasayfa();
+                        anasayfa.Show();
+                        this.Hide();
+                    }
+                    else
+                    {
+                        // Eğer silinen hiçbir kayıt yoksa
+                        MessageBox.Show("Silinecek kayıt bulunamadı.");
+                    }
+                }
+                catch (MySqlException mysqlEx)
+                {
+                    // Veritabanı hatası ile ilgili özel hata mesajı
+                    MessageBox.Show("DANISAN KAYIT SILME Veritabanı hatası: " + mysqlEx.Message);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Hata: " + ex.Message);
+                    // Diğer hatalar ile ilgili genel hata mesajı
+                    MessageBox.Show("DANISAN KAYIT SILME Hata: " + ex.Message);
                 }
                 finally
                 {
+                    // Bağlantıyı kapat
                     ConnectionAndStaticTools.CloseConnection();
                 }
             }
@@ -378,42 +541,65 @@ namespace GüzellikMerkeziProjesi
                 // Kullanıcı "Hayır" seçeneğini seçerse burada yapılacak işlemler
                 MessageBox.Show("Silme işlemi iptal edildi.");
             }
-
         }
+
 
         public void taninanPaketListele(int danismaID)
         {
-            cbTaninanPaket.Items.Clear();
-            ConnectionAndStaticTools.OpenConnection();
-            MySqlCommand cmd = new MySqlCommand("Select İslem from dbdanisankayit where DanisanID=@ID ORDER BY İslem ASC", ConnectionAndStaticTools.Connection);
-            cmd.Parameters.AddWithValue("@ID", danismaID);
-
-            using (MySqlDataReader reader = cmd.ExecuteReader())
+            try
             {
-                if (reader.HasRows)
+                // ComboBox'ı temizle
+                cbTaninanPaket.Items.Clear();
+
+                // Veritabanı bağlantısını aç
+                ConnectionAndStaticTools.OpenConnection();
+
+                // SQL komutunu oluştur
+                MySqlCommand cmd = new MySqlCommand("SELECT İslem FROM dbdanisankayit WHERE DanisanID=@ID ORDER BY İslem ASC", ConnectionAndStaticTools.Connection);
+                cmd.Parameters.AddWithValue("@ID", danismaID);
+
+                // Veritabanından veri oku
+                using (MySqlDataReader reader = cmd.ExecuteReader())
                 {
-                    while (reader.Read())
+                    if (reader.HasRows)
                     {
-                        string[] dizi1 = reader["İslem"].ToString().Split(':');
-                        string[] dizi2;
-                        for (int i = 0; i < dizi1.Length; i++)
+                        while (reader.Read())
                         {
-                            dizi2 = dizi1[i].Split(',');
-                            if (dizi2[0] != "")
+                            string[] dizi1 = reader["İslem"].ToString().Split(':');
+                            string[] dizi2;
+                            for (int i = 0; i < dizi1.Length; i++)
                             {
-                                cbTaninanPaket.Items.Add(dizi2[0]);
+                                dizi2 = dizi1[i].Split(',');
+                                if (dizi2.Length > 0 && !string.IsNullOrEmpty(dizi2[0]))
+                                {
+                                    cbTaninanPaket.Items.Add(dizi2[0]);
+                                }
                             }
-                            
                         }
+                    }
+                    else
+                    {
+                        // Eğer veri yoksa, ComboBox'a herhangi bir şey eklenmez
+                        MessageBox.Show("Bu danışanın tanınan paketi bulunmamaktadır.");
                     }
                 }
             }
-
-            ConnectionAndStaticTools.CloseConnection(); // using bloğunun dışında bağlantıyı kapat
+            catch (MySqlException mysqlEx)
+            {
+                // Veritabanı hataları için özel hata mesajı
+                MessageBox.Show("TANINAN PAKET LISTELE Veritabanı hatası: " + mysqlEx.Message);
+            }
+            catch (Exception ex)
+            {
+                // Diğer hatalar için genel hata mesajı
+                MessageBox.Show("TANINAN PAKET LISTELE Hata: " + ex.Message);
+            }
+            finally
+            {
+                // Veritabanı bağlantısını kapat
+                ConnectionAndStaticTools.CloseConnection();
+            }
         }
-
-
-
 
 
         public void dizidenElemanSilme(ref string[] array, string elementToRemove)
@@ -441,137 +627,212 @@ namespace GüzellikMerkeziProjesi
 
         public void taninanPaketSil()
         {
-            if (cbTaninanPaket.SelectedItem != null)
+            try
             {
-                string selectedValue = cbTaninanPaket.SelectedItem.ToString();
-                cbTaninanPaket.Items.Clear();
-                
-                
-
-                ConnectionAndStaticTools.OpenConnection();
-                MySqlCommand cmd = new MySqlCommand("Select İslem from dbdanisankayit where DanisanID=@ID ", ConnectionAndStaticTools.Connection);
-                cmd.Parameters.AddWithValue("@ID", id);
-
-                using (MySqlDataReader reader = cmd.ExecuteReader())
+                if (cbTaninanPaket.SelectedItem != null)
                 {
-                    while (reader.Read())
+                    string selectedValue = cbTaninanPaket.SelectedItem.ToString();
+                    cbTaninanPaket.Items.Clear();
+
+                    // Veritabanı bağlantısını aç
+                    ConnectionAndStaticTools.OpenConnection();
+
+                    // Danışanın işlem bilgilerini çekmek için komut oluştur
+                    MySqlCommand cmd = new MySqlCommand("SELECT İslem FROM dbdanisankayit WHERE DanisanID = @ID", ConnectionAndStaticTools.Connection);
+                    cmd.Parameters.AddWithValue("@ID", id);
+
+                    // Veritabanından veri okuma işlemi
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
                     {
-                        string[] dizi1 = reader["İslem"].ToString().Split(':');
-                        string[] dizi2;
-                        for (int i = 0; i < dizi1.Length; i++)
+                        while (reader.Read())
                         {
-                            dizi2 = dizi1[i].Split(',');
-                            if (selectedValue == dizi2[0])
+                            string[] dizi1 = reader["İslem"].ToString().Split(':');
+                            string[] dizi2;
+
+                            // Okunan her öğeyi işleyelim
+                            for (int i = 0; i < dizi1.Length; i++)
                             {
-                                silinenList.Add(dizi1[i]);
-                                dizidenElemanSilme(ref dizi1, dizi1[i]);
-                                foreach (var item in dizi1)
+                                dizi2 = dizi1[i].Split(',');
+
+                                // Eğer seçilen paketle eşleşiyorsa, onu sil
+                                if (selectedValue == dizi2[0])
                                 {
-                                    diziList.Add(item);
+                                    silinenList.Add(dizi1[i]);
+                                    dizidenElemanSilme(ref dizi1, dizi1[i]);
+
+                                    // Geriye kalan öğeleri diziList'e ekle
+                                    foreach (var item in dizi1)
+                                    {
+                                        diziList.Add(item);
+                                    }
                                 }
                             }
                         }
                     }
+
+                    // Veritabanı bağlantısını kapat
+                    ConnectionAndStaticTools.CloseConnection();
+
+                    // Paket bilgilerini güncelle
+                    taninanPaketguncelle();
+                    paketBilgisiGuncelle(id);
                 }
-
-                ConnectionAndStaticTools.CloseConnection();
-
-                
-                taninanPaketguncelle();
-                paketBilgisiGuncelle(id);
+                else
+                {
+                    MessageBox.Show("Lütfen bir öğe seçin.");
+                }
             }
-            else
+            catch (MySqlException ex)
             {
-                MessageBox.Show("Lütfen bir öğe seçin.");
+                // MySQL hatalarını burada yakalayabilirsiniz
+                MessageBox.Show("TANINAN PAKET SILME MySQL Hatası: " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Hata durumunda kullanıcıya mesaj göster
+                MessageBox.Show("TANINAN PAKET SILME Hata: " + ex.Message);
+            }
+            finally
+            {
+                ConnectionAndStaticTools.CloseConnection();
             }
         }
+
 
         public void taninanPaketguncelle()
         {
             try
             {
+                // Veritabanı bağlantısını aç
                 ConnectionAndStaticTools.OpenConnection();
-                string[] dizi= diziList.ToArray();
-                MySqlCommand cmd = new MySqlCommand("Update dbdanisankayit set İslem=@İslem where DanisanID=@ID",ConnectionAndStaticTools.Connection);
+
+                // Diziyi listeye dönüştür ve veritabanına göndermek için hazırlık yap
+                string[] dizi = diziList.ToArray();
+
+                // SQL komutunu hazırla
+                MySqlCommand cmd = new MySqlCommand("UPDATE dbdanisankayit SET İslem = @İslem WHERE DanisanID = @ID", ConnectionAndStaticTools.Connection);
+
+                // Parametreleri ekle
                 cmd.Parameters.AddWithValue("@ID", id);
-                string birlestirilmisDizi=string.Join(":", dizi);
+                string birlestirilmisDizi = string.Join(":", dizi);
                 cmd.Parameters.AddWithValue("@İslem", birlestirilmisDizi);
-                int etk=cmd.ExecuteNonQuery();
+
+                // Komutu çalıştır
+                int etk = cmd.ExecuteNonQuery();
+
+                // Etkili bir işlem varsa kullanıcıya başarı mesajı göster
                 if (etk > 0)
                 {
                     MessageBox.Show("Paket başarıyla silinmiştir");
                 }
-                cbTaninanPaket.Text = "";
+                else
+                {
+                    MessageBox.Show("Paket silinirken bir sorun oluştu.");
+                }
 
+                // ComboBox'taki seçili öğeyi temizle
+                cbTaninanPaket.Text = "";
+            }
+            catch (MySqlException ex)
+            {
+                // MySQL hatalarını burada yakalayabilirsiniz
+                MessageBox.Show("TANINAN PAKET GUNCELLEME Veritabani Hatası: " + ex.Message);
             }
             catch (Exception ex)
             {
-              MessageBox.Show("Hata:"+ex.Message);
+                // Diğer genel hataları burada yakalayabilirsiniz
+                MessageBox.Show("TANINAN PAKET Hata: " + ex.Message);
             }
             finally
-            { 
+            {
+                // Bağlantıyı kapatmayı unutma
                 ConnectionAndStaticTools.CloseConnection();
             }
         }
 
+
         public void paketBilgisiGuncelle(int danisanId)
         {
+            // Veritabanı bağlantısını aç
             ConnectionAndStaticTools.OpenConnection();
+
             try
             {
-
+                // Silinen paket bilgilerini içeren listeyi diziye dönüştür
                 string[] dizi = silinenList.ToArray();
 
-
+                // Eğer dizi boş değilse
                 if (dizi.Length > 0)
                 {
                     string[] sonIslem;
                     int sayac = 1;
+
+                    // Dizi üzerinde döngü başlat
                     foreach (string paketDizi in dizi)
                     {
-
+                        // Paketi virgülle ayır
                         sonIslem = paketDizi.Split(',');
 
-                        // sonIslem dizisinin boyutunu kontrol et
+                        // Eğer dizinin uzunluğu beklenen öğe sayısına sahip değilse
                         if (sonIslem.Length != 3)
                         {
-                            // Hata durumunu işle
                             MessageBox.Show("Paket dizisi beklenen öğe sayısına sahip değil.");
-                            continue; // Devam et ve bir sonraki pakete geç
+                            continue; // Bir sonraki pakete geç
                         }
-                        string islem = sonIslem[0];
-                        int seans = Convert.ToInt32(sonIslem[1]);
-                        for (int i = 1; i <= seans; i++)
-                        { 
 
+                        string islem = sonIslem[0]; // İlk eleman işlem ismi
+                        int seans = Convert.ToInt32(sonIslem[1]); // İkinci eleman seans sayısı
+
+                        // Seans sayısına göre işlem yap
+                        for (int i = 1; i <= seans; i++)
+                        {
+                            // Eğer son seansa ulaşıldıysa sayaç sıfırlanacak
                             if (i == seans)
                             {
                                 sayac = 1;
                             }
                             sayac++;
 
-                            MySqlCommand cmdPaket = new MySqlCommand("Delete from dbpaketbilgisi where ID=@ID and Aciklama=@Aciklama", ConnectionAndStaticTools.Connection);
+                            // SQL komutunu oluştur
+                            MySqlCommand cmdPaket = new MySqlCommand("DELETE FROM dbpaketbilgisi WHERE ID = @ID AND Aciklama = @Aciklama", ConnectionAndStaticTools.Connection);
                             cmdPaket.Parameters.AddWithValue("@ID", danisanId);
                             cmdPaket.Parameters.AddWithValue("@Aciklama", $"{islem}{i}");
-                            
-                            cmdPaket.ExecuteNonQuery();
 
-
+                            try
+                            {
+                                // SQL komutunu çalıştır
+                                cmdPaket.ExecuteNonQuery();
+                            }
+                            catch (MySqlException sqlEx)
+                            {
+                                // MySQL hatası yakalama
+                                MessageBox.Show($"PAKET BILGISI GUNCELLE MySQL Hatası: {sqlEx.Message}");
+                            }
+                            catch (Exception ex)
+                            {
+                                // Diğer genel hatalar
+                                MessageBox.Show($"PAKET BILGISI GUNCELLE Hata: {ex.Message}");
+                            }
                         }
-
                     }
                 }
-
+                else
+                {
+                    MessageBox.Show("Silinen paket listesi boş.");
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata: " + ex.Message + "\nStack Trace: " + ex.StackTrace);
+                // Genel hata yönetimi
+                MessageBox.Show($"PAKET BILGISI GUNCELLE Genel Hata: {ex.Message}");
             }
             finally
             {
+                // Bağlantıyı kapat
                 ConnectionAndStaticTools.CloseConnection();
             }
         }
+
 
         private void label16_Click(object sender, EventArgs e)
         {
@@ -588,42 +849,84 @@ namespace GüzellikMerkeziProjesi
             this.Hide();
         }
 
-        
+
 
         private void notListesiGetir()
         {
             try
             {
-                MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter("SELECT * from dbnotlar where ID=@DanisanID", ConnectionAndStaticTools.Connection);
-                mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@DanisanID", id);
+                ConnectionAndStaticTools.OpenConnection();
 
-                DataTable dt = new DataTable();
-                mySqlDataAdapter.Fill(dt);
-                dataGridView2.DataSource = dt;
+                // Veritabanı sorgusu için adapter
+                using (MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter("SELECT * FROM dbnotlar WHERE ID = @DanisanID", ConnectionAndStaticTools.Connection))
+                {
+                    // Parametreyi ekle
+                    mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@DanisanID", id);
+
+                    // DataTable oluşturulacak ve veri ile doldurulacak
+                    DataTable dt = new DataTable();
+                    mySqlDataAdapter.Fill(dt);
+
+                    // DataGridView'e veri aktar
+                    dataGridView2.DataSource = dt;
+                }
+            }
+            catch (MySqlException sqlEx)
+            {
+                // Veritabanı hatası varsa yakala
+                MessageBox.Show("NOT LISTESI GETIR Veritabanı hatası: " + sqlEx.Message);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata: " + ex.Message);
+                // Diğer tüm hataları yakala
+                MessageBox.Show("NOT LISTESI GETIR Hata: " + ex.Message);
+            }
+            finally
+            {
+                ConnectionAndStaticTools.CloseConnection();
             }
         }
+
 
         private void alinanOdemelerListesiGetir()
         {
             try
             {
-                MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter("SELECT * from dbalinanodemeler where ID=@DanisanID", ConnectionAndStaticTools.Connection);
-                mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@DanisanID", id);
+                ConnectionAndStaticTools.OpenConnection();
 
-                DataTable dt = new DataTable();
-                mySqlDataAdapter.Fill(dt);
-                dataGridView3.DataSource = dt;
-                dataGridView3.Columns["Aciklama"].ReadOnly = false;
+                // MySqlDataAdapter ile verileri çekiyoruz
+                using (MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter("SELECT * FROM dbalinanodemeler WHERE ID = @DanisanID", ConnectionAndStaticTools.Connection))
+                {
+                    // Parametreyi ekle
+                    mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@DanisanID", id);
+
+                    // DataTable oluşturulacak ve veri ile doldurulacak
+                    DataTable dt = new DataTable();
+                    mySqlDataAdapter.Fill(dt);
+
+                    // DataGridView'e veri aktar
+                    dataGridView3.DataSource = dt;
+
+                    // "Aciklama" sütununu düzenlenebilir yap
+                    dataGridView3.Columns["Aciklama"].ReadOnly = false;
+                }
+            }
+            catch (MySqlException sqlEx)
+            {
+                // Veritabanı hatası varsa yakala
+                MessageBox.Show("ALINAN ODEMELER LISTESI GETIR Veritabanı hatası: " + sqlEx.Message);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata: " + ex.Message);
+                // Diğer tüm hataları yakala
+                MessageBox.Show("ALINAN ODEMELER LISTESI GETIR Hata: " + ex.Message);
+            }
+            finally
+            {
+                ConnectionAndStaticTools.CloseConnection();
             }
         }
+
 
         private void lblYeniPaketTanimla_Click(object sender, EventArgs e)
         {
@@ -632,69 +935,82 @@ namespace GüzellikMerkeziProjesi
             this.Hide();
         }
 
+        // Hücrede yapılan düzenleme sonrasında işlemi tamamla (geçerli tarih kontrolü)
         private void dataGridView1_CellEndEdit_1(object sender, DataGridViewCellEventArgs e)
         {
-
-            if (e.ColumnIndex == 2) // tarihSutunuIndex: Tarih sütununun indeksi
+            try
             {
-                // Hücre değerinin boş olup olmadığını kontrol et
-                object cellValue = dataGridView1.Rows[e.RowIndex].Cells[2].Value;
-                if (cellValue != DBNull.Value && cellValue != null)
+                if (e.ColumnIndex == 2) // Tarih sütununun indeksi (2)
                 {
-                    // Tarih sütunu değiştiğinde, ilgili satırı güncelle
-                    DateTime yeniTarih = Convert.ToDateTime(cellValue);
-                    int satirId = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["ID"].Value);
-                    int kacinciGelis = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["KacinciGelis"].Value);
-                    string aciklama = dataGridView1.Rows[e.RowIndex].Cells["Aciklama"].Value.ToString();
-                    string yeniDurum = dataGridView1.Rows[e.RowIndex].Cells["Durum"].Value.ToString();
-                    GuncelleTarihSatir(satirId, yeniTarih, kacinciGelis, aciklama);
-                    // durumGuncelle(satirId,yeniDurum, kacinciGelis, aciklama);
+                    // Hücre değerinin boş olup olmadığını kontrol et
+                    var cellValue = dataGridView1.Rows[e.RowIndex].Cells[2].Value;
+                    if (cellValue != DBNull.Value && cellValue != null)
+                    {
+                        // Tarih sütunu değiştiğinde, geçerli tarih olup olmadığını kontrol et
+                        DateTime yeniTarih;
+                        if (DateTime.TryParse(cellValue.ToString(), out yeniTarih))
+                        {
+                            // Geçerli bir tarih ise, işlemi yap
+                            int satirId = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["ID"].Value);
+                            int kacinciGelis = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["KacinciGelis"].Value);
+                            string aciklama = dataGridView1.Rows[e.RowIndex].Cells["Aciklama"].Value.ToString();
+                            string yeniDurum = dataGridView1.Rows[e.RowIndex].Cells["Durum"].Value.ToString();
+                            GuncelleTarihSatir(satirId, yeniTarih, kacinciGelis, aciklama);
+                        }
+                        else
+                        {
+                            // Eğer tarih geçerli değilse, kullanıcıya uyarı göster
+                            MessageBox.Show("Geçerli bir tarih girin!");
+                        }
+                    }
+                    else
+                    {
+                        // Hücre değeri boş ise, kullanıcıya uyarı göster
+                        MessageBox.Show("Hücre değeri boş olduğu için kaydedilmedi!");
+                    }
+                }
+                else if (e.ColumnIndex == 5) // Durum sütunu (index 5)
+                {
+                    // Durum sütunu işlem mantığı
+                    int kacinciGelisSayac = 1000;
+                    object cellValue = dataGridView1.Rows[e.RowIndex].Cells[1].Value;
+                    int gelis = (cellValue != DBNull.Value && cellValue != null && !string.IsNullOrEmpty(cellValue.ToString())) ? Convert.ToInt32(cellValue) : kacinciGelisSayac;
+
+                    int kacinciGelis = gelis;
+                    var cellValue2 = dataGridView1.Rows[e.RowIndex].Cells[4].Value;
+                    string aciklama;
+                    if (cellValue2 != DBNull.Value && cellValue2 != null)
+                    {
+                        aciklama = dataGridView1.Rows[e.RowIndex].Cells["Aciklama"].Value.ToString();
+                        string yeniDurum = dataGridView1.Rows[e.RowIndex].Cells["Durum"].Value.ToString();
+                        int satirId = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["ID"].Value);
+                        durumGuncelle(satirId, yeniDurum, kacinciGelis, aciklama);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Hücre değeri boş olduğu için kaydedilmedi!");
+                    }
                 }
                 else
                 {
-                    // Hücre değeri boş ise, gerekli işlemi yapabilir veya kullanıcıya bir uyarı gösterebilirsiniz
-                    MessageBox.Show("Hücre değeri boş olduğu için kaydedilmedi!");
+                    // Diğer sütunlar için işlemler yapılabilir
                 }
             }
-            else if (e.ColumnIndex == 5)
+            catch (MySqlException ex)
             {
-                int kacinciGelisSayac = 1000;
-
-                object cellValue = dataGridView1.Rows[e.RowIndex].Cells[1].Value;
-                int gelis;
-                if (cellValue != DBNull.Value && cellValue != null && !string.IsNullOrEmpty(cellValue.ToString()))
-                {
-                    gelis = Convert.ToInt32(cellValue);
-                }
-                else
-                {
-                    gelis = kacinciGelisSayac;
-                }
-
-                int kacinciGelis = (gelis != null) ? gelis : kacinciGelisSayac;
-                object cellValue2 = dataGridView1.Rows[e.RowIndex].Cells[4].Value;
-                string aciklama;
-                if (cellValue2 != DBNull.Value && cellValue2 != null)
-                {
-                     aciklama = dataGridView1.Rows[e.RowIndex].Cells["Aciklama"].Value.ToString();
-                    string yeniDurum = dataGridView1.Rows[e.RowIndex].Cells["Durum"].Value.ToString();
-                    durumGuncelle(id, yeniDurum, kacinciGelis, aciklama);
-                }
-                else
-                {
-                    MessageBox.Show("Hücre değeri boş olduğu için kaydedilmedi!");
-                }
-                
-                    
-                }
-                else
-                {
-                    // Hücre değeri boş ise, gerekli işlemi yapabilir veya kullanıcıya bir uyarı gösterebilirsiniz
-                    MessageBox.Show("Hücre değeri boş olduğu için kaydedilmedi!");
-                }
+                MessageBox.Show("Tarih formatı hatalı! Lütfen geçerli bir değer girin. " );
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Bir hata oluştu: ");
+             
+            }
+        }
 
        
+
+
+
 
         private void GuncelleTarihSatir(int satirId, DateTime yeniTarih, int KacinciGelis, string aciklama)
         {
@@ -702,25 +1018,38 @@ namespace GüzellikMerkeziProjesi
             {
                 ConnectionAndStaticTools.OpenConnection();
 
-
                 // Veritabanında güncelleme sorgusu
                 string updateQuery = "UPDATE dbpaketbilgisi SET Tarih = @YeniTarih WHERE ID = @ID and KacinciGelis=@KacinciGelis and Aciklama=@Aciklama";
-                MySqlCommand cmd = new MySqlCommand(updateQuery, ConnectionAndStaticTools.Connection);
-                cmd.Parameters.AddWithValue("@YeniTarih", yeniTarih);
-                cmd.Parameters.AddWithValue("@ID", satirId);
-                cmd.Parameters.AddWithValue("@KacinciGelis", KacinciGelis);
-                cmd.Parameters.AddWithValue("@Aciklama", aciklama);
 
-                cmd.ExecuteNonQuery();
+                // MySqlCommand nesnesini 'using' bloğunda kullanarak otomatik olarak bellekten temizlenmesini sağla
+                using (MySqlCommand cmd = new MySqlCommand(updateQuery, ConnectionAndStaticTools.Connection))
+                {
+                    // Parametreleri ekle
+                    cmd.Parameters.AddWithValue("@YeniTarih", yeniTarih);
+                    cmd.Parameters.AddWithValue("@ID", satirId);
+                    cmd.Parameters.AddWithValue("@KacinciGelis", KacinciGelis);
+                    cmd.Parameters.AddWithValue("@Aciklama", aciklama);
 
-                ConnectionAndStaticTools.CloseConnection();
-
+                    // SQL sorgusunu çalıştır
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (MySqlException sqlEx)
+            {
+                // Veritabanı hatası varsa yakala
+                MessageBox.Show("GUNCELLE TARIH SATIR Veritabanı hatası: " + sqlEx.Message);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata: " + ex.Message);
+                // Diğer hataları yakala
+                MessageBox.Show("GUNCELLE TARIH SATIR Hata: " + ex.Message);
+            }
+            finally
+            {
+                ConnectionAndStaticTools.CloseConnection();
             }
         }
+
 
         private void durumGuncelle(int satirId, string yeniDurum, int KacinciGelis, string aciklama)
         {
@@ -730,27 +1059,37 @@ namespace GüzellikMerkeziProjesi
 
                 // Veritabanında güncelleme sorgusu
                 string updateQuery = "UPDATE dbpaketbilgisi SET Durum = @YeniDurum WHERE ID = @ID and KacinciGelis=@KacinciGelis and Aciklama=@Aciklama";
-                MySqlCommand cmd = new MySqlCommand(updateQuery, ConnectionAndStaticTools.Connection);
-                cmd.Parameters.AddWithValue("@YeniDurum", yeniDurum);
-                cmd.Parameters.AddWithValue("@ID", satirId);
-                cmd.Parameters.AddWithValue("@KacinciGelis", KacinciGelis);
-                cmd.Parameters.AddWithValue("@Aciklama", aciklama);
-                
-                cmd.ExecuteNonQuery();
-                
+                using (MySqlCommand cmd = new MySqlCommand(updateQuery, ConnectionAndStaticTools.Connection))
+                {
+                    // Parametreleri ekle
+                    cmd.Parameters.AddWithValue("@YeniDurum", yeniDurum);
+                    cmd.Parameters.AddWithValue("@ID", satirId);
+                    cmd.Parameters.AddWithValue("@KacinciGelis", KacinciGelis);
+                    cmd.Parameters.AddWithValue("@Aciklama", aciklama);
+
+                    // SQL sorgusunu çalıştır
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (MySqlException sqlEx)
+            {
+                // Veritabanı hatası varsa yakala
+                MessageBox.Show("DURUM GUNCELLE Veritabanı hatası: " + sqlEx.Message);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata: " + ex.Message);
+                // Diğer hataları yakala
+                MessageBox.Show("DURUM GUNCELLE Hata: " + ex.Message);
             }
             finally
-            { 
-                ConnectionAndStaticTools.CloseConnection(); 
+            {
+                ConnectionAndStaticTools.CloseConnection();
             }
         }
 
 
- 
+
+
 
 
 
@@ -783,6 +1122,8 @@ namespace GüzellikMerkeziProjesi
             tutarGuncelle.Show();  
             this.Hide();
         }
+
+ 
     }
     }
 

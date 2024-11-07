@@ -16,19 +16,40 @@ namespace GüzellikMerkeziProjesi
             get { return connection; }
         }
 
+
+        // Bağlantıyı açan metod
         public static void OpenConnection()
         {
-            if (ConnectionAndStaticTools.Connection.State == System.Data.ConnectionState.Closed)
+            try
             {
-                ConnectionAndStaticTools.Connection.Open();
+                if (Connection.State == System.Data.ConnectionState.Closed)
+                {
+                    Connection.Open();
+                }
+            }
+            catch (MySqlException ex)
+            {
+                // Veritabanı bağlantısı ile ilgili hata
+                Console.WriteLine($"VERİTABANI BAGLANTİSİ ACİLMADİ: {ex.Message}");
+                throw;  // Hata yönetimini üst katmana iletmek için
             }
         }
 
+        // Bağlantıyı kapatan metod
         public static void CloseConnection()
         {
-            if (ConnectionAndStaticTools.Connection.State == System.Data.ConnectionState.Open)
+            try
             {
-                ConnectionAndStaticTools.Connection.Close();
+                if (Connection.State == System.Data.ConnectionState.Open)
+                {
+                    Connection.Close();
+                }
+            }
+            catch (MySqlException ex)
+            {
+                // Bağlantı kapama hatası
+                Console.WriteLine($"VERİTABANI BAGLANTİSİ KAPATİLMADİ: {ex.Message}");
+                throw;  // Hata yönetimini üst katmana iletmek için
             }
         }
 
