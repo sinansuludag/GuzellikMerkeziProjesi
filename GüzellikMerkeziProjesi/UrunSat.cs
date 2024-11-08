@@ -47,17 +47,21 @@ namespace GüzellikMerkeziProjesi
             if (txtUrunFiyati.Text == "")
             {
                 MessageBox.Show("Lütfen geçerli bir fiyat giriniz.");
-                return; // İşlemi durdurun
+                return;
             }
+
+            // KacinciGelis değerini al
+            int kacinciGelis = GetNextKacinciGelis();
 
             // Ürün bilgilerini veritabanına ekleme işlemi
             OpenConnection();
-            MySqlCommand mySqlCommand = new MySqlCommand("Insert into dbpaketbilgisi (ID,Tarih,Aciklama,Durum,Tutar) values (@ID,@Tarih,@Aciklama,@Durum,@Tutar)", ConnectionAndStaticTools.Connection);
+            MySqlCommand mySqlCommand = new MySqlCommand("INSERT INTO dbpaketbilgisi (ID, Tarih, Aciklama, Durum, Tutar, KacinciGelis) VALUES (@ID, @Tarih, @Aciklama, @Durum, @Tutar, @KacinciGelis)", ConnectionAndStaticTools.Connection);
             mySqlCommand.Parameters.AddWithValue("@ID", id);
             mySqlCommand.Parameters.AddWithValue("@Tarih", tarihDataTimePic.Value);
             mySqlCommand.Parameters.AddWithValue("@Aciklama", txtUrunAdi.Text);
             mySqlCommand.Parameters.AddWithValue("@Durum", "");
             mySqlCommand.Parameters.AddWithValue("@Tutar", float.Parse(txtUrunFiyati.Text));
+            mySqlCommand.Parameters.AddWithValue("@KacinciGelis", kacinciGelis);
             mySqlCommand.ExecuteNonQuery();
             CloseConnection();
 
@@ -65,12 +69,35 @@ namespace GüzellikMerkeziProjesi
             oncekiTutarGetir();
             temizle();
             MessageBox.Show("Ürün başarıyla satıldı.");
-
-            // DanisanBilgileri formunu aç
-            DanisanBilgileri danisanBilgileri = new DanisanBilgileri(id);
-            ConnectionAndStaticTools.danisanGetir(danisanBilgileri, id);
-            this.Hide();
         }
+
+        private int GetNextKacinciGelis()
+        {
+            int kacinciGelis = 100;
+
+            try
+            {
+                // Veritabanından en büyük KacinciGelis değerini al
+                OpenConnection();
+                MySqlCommand command = new MySqlCommand("SELECT MAX(KacinciGelis) FROM dbpaketbilgisi", ConnectionAndStaticTools.Connection);
+                object result = command.ExecuteScalar();
+                CloseConnection();
+
+                // Eğer sonuç null değilse ve 100'den küçükse, başlangıç değeri olarak 100 kullan
+                if (result != DBNull.Value && result != null)
+                {
+                    int maxValue = Convert.ToInt32(result);
+                    kacinciGelis = maxValue < 100 ? 100 : maxValue + 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("GET NEXT KACINCI GELIS Hata: " + ex.Message);
+            }
+
+            return kacinciGelis;
+        }
+
 
         private void AltForm_FormClosing(object sender, FormClosingEventArgs e)
         {

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Configuration;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ namespace GüzellikMerkeziProjesi
         int id;
         List<string> silinenList = new List<string>();
         List<string> diziList = new List<string>();
+        
 
         public DanisanBilgileri(int id)
         {
@@ -935,43 +937,73 @@ namespace GüzellikMerkeziProjesi
             this.Hide();
         }
 
-        // Hücrede yapılan düzenleme sonrasında işlemi tamamla (geçerli tarih kontrolü)
-        private void dataGridView1_CellEndEdit_1(object sender, DataGridViewCellEventArgs e)
+        private void dataGridView1_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+            if (e.ColumnIndex == 2) // Tarih sütunu (2)
+            {
+                string cellValue = e.FormattedValue.ToString().Trim(); // Hücreyi temizle
+
+                // Hücre değeri boşsa geçerli olduğunu varsayalım
+                if (string.IsNullOrEmpty(cellValue))
+                {
+                    return; // Eğer boşsa işlem yapma
+                }
+
+                DateTime yeniTarih;
+
+                // DateTime.TryParse kullanarak geçerli tarih formatını kontrol et
+                bool isValidDate = DateTime.TryParse(cellValue, out yeniTarih);
+
+                if (!isValidDate)
+                {
+                    // Geçersiz tarih girildi, hata mesajı göster
+                    MessageBox.Show("Lütfen geçerli bir tarih girin. Örneğin: 01/01/2024.");
+                    e.Cancel = true; //İletisim kutusunun cıkmasını engelle
+                }
+            }
+        }
+
+        private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
             try
             {
-                if (e.ColumnIndex == 2) // Tarih sütununun indeksi (2)
+                if (e.ColumnIndex == 2) // Tarih sütunu (2)
                 {
-                    // Hücre değerinin boş olup olmadığını kontrol et
-                    var cellValue = dataGridView1.Rows[e.RowIndex].Cells[2].Value;
-                    if (cellValue != DBNull.Value && cellValue != null)
+                    var cellValue = dataGridView1.Rows[e.RowIndex].Cells["Tarih"].Value;
+
+                    // Hücre değeri boşsa geçerli bir değer yok demektir
+                    if (cellValue == DBNull.Value || cellValue == null || string.IsNullOrEmpty(cellValue.ToString()))
                     {
-                        // Tarih sütunu değiştiğinde, geçerli tarih olup olmadığını kontrol et
-                        DateTime yeniTarih;
-                        if (DateTime.TryParse(cellValue.ToString(), out yeniTarih))
-                        {
-                            // Geçerli bir tarih ise, işlemi yap
-                            int satirId = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["ID"].Value);
-                            int kacinciGelis = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["KacinciGelis"].Value);
-                            string aciklama = dataGridView1.Rows[e.RowIndex].Cells["Aciklama"].Value.ToString();
-                            string yeniDurum = dataGridView1.Rows[e.RowIndex].Cells["Durum"].Value.ToString();
-                            GuncelleTarihSatir(satirId, yeniTarih, kacinciGelis, aciklama);
-                        }
-                        else
-                        {
-                            // Eğer tarih geçerli değilse, kullanıcıya uyarı göster
-                            MessageBox.Show("Geçerli bir tarih girin!");
-                        }
+                        //MessageBox.Show("Tarih hücresini boş bırakamazsınız. Lütfen geçerli bir tarih girin.");
+                        return; // Hücreyi boş bırakmak geçerli değildir
+                    }
+
+                    DateTime yeniTarih;
+
+                    // DateTime.TryParse kullanarak geçerli tarih formatını kontrol et
+                    bool isValidDate = DateTime.TryParse(cellValue.ToString().Trim(), out yeniTarih);
+
+                    if (isValidDate)
+                    {
+                        // Geçerli tarih ise işlemi yap
+                        int satirId = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["ID"].Value);
+                        int kacinciGelis = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["KacinciGelis"].Value);
+                        string aciklama = dataGridView1.Rows[e.RowIndex].Cells["Aciklama"].Value.ToString();
+                        string yeniDurum = dataGridView1.Rows[e.RowIndex].Cells["Durum"].Value.ToString();
+
+                        // Veritabanı güncellemesi yapılır
+                        GuncelleTarihSatir(satirId, yeniTarih, kacinciGelis, aciklama);
                     }
                     else
                     {
-                        // Hücre değeri boş ise, kullanıcıya uyarı göster
-                        MessageBox.Show("Hücre değeri boş olduğu için kaydedilmedi!");
+                        // Geçerli tarih formatı sağlanmazsa hücreyi temizle
+                        MessageBox.Show("Lütfen geçerli bir tarih formatı girin.");
+                        dataGridView1.Rows[e.RowIndex].Cells["Tarih"].Value = DBNull.Value; // Hücreyi temizle
                     }
                 }
                 else if (e.ColumnIndex == 5) // Durum sütunu (index 5)
                 {
-                    // Durum sütunu işlem mantığı
+                    // Durum güncelleme işlemi yapılır
                     int kacinciGelisSayac = 1000;
                     object cellValue = dataGridView1.Rows[e.RowIndex].Cells[1].Value;
                     int gelis = (cellValue != DBNull.Value && cellValue != null && !string.IsNullOrEmpty(cellValue.ToString())) ? Convert.ToInt32(cellValue) : kacinciGelisSayac;
@@ -979,16 +1011,19 @@ namespace GüzellikMerkeziProjesi
                     int kacinciGelis = gelis;
                     var cellValue2 = dataGridView1.Rows[e.RowIndex].Cells[4].Value;
                     string aciklama;
+
                     if (cellValue2 != DBNull.Value && cellValue2 != null)
                     {
                         aciklama = dataGridView1.Rows[e.RowIndex].Cells["Aciklama"].Value.ToString();
                         string yeniDurum = dataGridView1.Rows[e.RowIndex].Cells["Durum"].Value.ToString();
                         int satirId = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["ID"].Value);
+
+                        // Durum güncelleme işlemi
                         durumGuncelle(satirId, yeniDurum, kacinciGelis, aciklama);
                     }
                     else
                     {
-                        MessageBox.Show("Hücre değeri boş olduğu için kaydedilmedi!");
+                        MessageBox.Show("Durum hücresini boş bırakamazsınız. Lütfen geçerli bir durum girin.");
                     }
                 }
                 else
@@ -998,19 +1033,15 @@ namespace GüzellikMerkeziProjesi
             }
             catch (MySqlException ex)
             {
-                MessageBox.Show("Tarih formatı hatalı! Lütfen geçerli bir değer girin. " );
+                // Veritabanı hatası için genel mesaj
+                MessageBox.Show("CELL END EDIT TARIH EKLEME Veritabanı hatası oluştu: " + ex.Message);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Bir hata oluştu: ");
-             
+                // Diğer hatalar için genel mesaj
+                MessageBox.Show("CELL END EDIT TARIH EKLEME Bir hata oluştu: " + ex.Message);
             }
         }
-
-       
-
-
-
 
         private void GuncelleTarihSatir(int satirId, DateTime yeniTarih, int KacinciGelis, string aciklama)
         {
