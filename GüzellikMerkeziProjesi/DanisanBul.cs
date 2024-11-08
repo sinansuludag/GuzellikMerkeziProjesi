@@ -26,23 +26,47 @@ namespace GüzellikMerkeziProjesi
         DataTable dt = new DataTable();
         private void kisiListele()
         {
-            MySqlDataAdapter adapter = new MySqlDataAdapter("SELECT * FROM dbdanisankayit ORDER BY Adi ASC;", ConnectionAndStaticTools.Connection);
-            adapter.Fill(dt);
-            dataGridView1.DataSource = dt;
-            dataGridView1.Columns["İslem"].Visible = false;
-            dataGridView1.DefaultCellStyle.SelectionBackColor = Color.FromArgb(0, 139 ,139);
-            dataGridView1.BackgroundColor = Color.White;
-            //Sıralamayı kaldır
-            dataGridView1.Columns["DanisanID"].SortMode = DataGridViewColumnSortMode.NotSortable;
-            dataGridView1.Columns["Adi"].SortMode = DataGridViewColumnSortMode.NotSortable;
-            dataGridView1.Columns["Soyadi"].SortMode = DataGridViewColumnSortMode.NotSortable;
-            dataGridView1.Columns["Telefon"].SortMode = DataGridViewColumnSortMode.NotSortable;
-            dataGridView1.Columns["Referans"].SortMode = DataGridViewColumnSortMode.NotSortable;
-            dataGridView1.Columns["Cinsiyet"].SortMode = DataGridViewColumnSortMode.NotSortable;
+            try
+            {
+                // Veritabanı sorgusu ve adapter
+                MySqlDataAdapter adapter = new MySqlDataAdapter("SELECT * FROM dbdanisankayit ORDER BY Adi ASC;", ConnectionAndStaticTools.Connection);
 
+                // DataTable'ı doldur
+ 
+                adapter.Fill(dt);
+
+                // DataGridView'e veri kaynağını ata
+                dataGridView1.DataSource = dt;
+
+                // İstenmeyen sütunları gizle
+                dataGridView1.Columns["İslem"].Visible = false;
+
+                // Hücre seçildiğinde arka plan rengini değiştir
+                dataGridView1.DefaultCellStyle.SelectionBackColor = Color.FromArgb(0, 139, 139);
+                dataGridView1.BackgroundColor = Color.White;
+
+                // Sıralamayı kaldır
+                dataGridView1.Columns["DanisanID"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                dataGridView1.Columns["Adi"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                dataGridView1.Columns["Soyadi"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                dataGridView1.Columns["Telefon"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                dataGridView1.Columns["Referans"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                dataGridView1.Columns["Cinsiyet"].SortMode = DataGridViewColumnSortMode.NotSortable;
+            }
+            catch (MySqlException ex)
+            {
+                // MySQL hatası durumunda mesaj ver
+                MessageBox.Show("DANISAN BUL KISI LISTELE Veritabanı hatası oluştu: " + ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Diğer hatalar için genel bir mesaj
+                MessageBox.Show("DANISAN BUL KISI LISTELE Bir hata oluştu: " + ex.Message);
+            }
         }
 
-        
+
+
         private int KayitSayisiGetir()
         {
             int kayitSayisi = 0;
@@ -58,7 +82,7 @@ namespace GüzellikMerkeziProjesi
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata:"+ex.Message);
+                MessageBox.Show("KAYIT SAYISI GETIR Hata:"+ex.Message);
             }
             finally
             {
