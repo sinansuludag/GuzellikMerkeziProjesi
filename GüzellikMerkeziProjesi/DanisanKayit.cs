@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -123,9 +124,13 @@ namespace GüzellikMerkeziProjesi
                     MessageBox.Show("DanisanID alınamadı.");
                 }
             }
+            catch(MySqlException ex)
+            {
+                MessageBox.Show("DANISAN KAYDET Veritabanı hatası: " + ex.Message);
+            }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata: " + ex.Message + "\nStack Trace: " + ex.StackTrace);
+                MessageBox.Show("DANISAN KAYDET Hata: " + ex.Message);
             }
             finally
             {
@@ -207,9 +212,13 @@ namespace GüzellikMerkeziProjesi
                 temizle();
                 
             }
+            catch (MySqlException ex)
+            {
+                MessageBox.Show("PAKET BİLGİSİNE GONDER Veritabanı hatası: " + ex.Message);
+            }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata: " + ex.Message + "\nStack Trace: " + ex.StackTrace);
+                MessageBox.Show("PAKET BİLGİSİNE GONDER Hata: " + ex.Message );
             }
             finally
             {
@@ -221,19 +230,68 @@ namespace GüzellikMerkeziProjesi
 
         private void paketListele()
         {
-            cbIslem.Items.Clear();
-            ConnectionAndStaticTools.OpenConnection();
-            MySqlCommand cmd = new MySqlCommand("Select * from dbpaketler ORDER BY Paket ASC", ConnectionAndStaticTools.Connection);
-            MySqlDataReader reader = cmd.ExecuteReader();
+            MySqlCommand cmd = null;
+            MySqlDataReader reader = null;
 
-            while (reader.Read())
+            try
             {
-                cbIslem.Items.Add(reader["Paket"].ToString());
+                // ComboBox'u temizleyin
+                cbIslem.Items.Clear();
+
+                // Bağlantıyı aç
+                ConnectionAndStaticTools.OpenConnection();
+
+                // SQL komutunu tanımla
+                cmd = new MySqlCommand("SELECT * FROM dbpaketler ORDER BY Paket ASC", ConnectionAndStaticTools.Connection);
+
+                // Veri okuyucu kullanımı
+                reader = cmd.ExecuteReader();
+
+                // Okuma işlemi sırasında hata kontrolü
+                if (reader.HasRows)
+                {
+                    while (reader.Read())
+                    {
+                        // "Paket" kolonundan veri al ve ComboBox'a ekle
+                        cbIslem.Items.Add(reader["Paket"].ToString());
+                    }
+                }
+                else
+                {
+                    // Hiç veri bulunamadıysa uyarı ver
+                    MessageBox.Show("Veritabanında paket bulunamadı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
-            ConnectionAndStaticTools.CloseConnection();
+            catch (MySqlException sqlEx)
+            {
+                // MySQL hatalarını yakala
+                MessageBox.Show($"DANISAN KAYIT PAKET LISTELE Veritabanı hatası: {sqlEx.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                // Diğer hataları yakala
+                MessageBox.Show($"DANISAN KAYIT PAKET LISTELE Beklenmeyen bir hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // Veri okuyucuyu kapat
+                if (reader != null && !reader.IsClosed)
+                {
+                    reader.Close();
+                }
+
+                // Komutu kapat
+                if (cmd != null)
+                {
+                    cmd.Dispose();
+                }
+
+                ConnectionAndStaticTools.CloseConnection();
+            }
         }
 
-     
+
+
 
         private void paketListesiTemizle()
         {
@@ -259,7 +317,7 @@ namespace GüzellikMerkeziProjesi
                 }
                 else
                 {
-                    MessageBox.Show("Lütfen geçerli bir sayı giriniz");
+                    MessageBox.Show("Lütfen geçerli bir seans veya ücret sayısı giriniz");
                 }
 
             }
