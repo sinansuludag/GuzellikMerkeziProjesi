@@ -26,26 +26,66 @@ namespace GüzellikMerkeziProjesi
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (richTxtNotlar.Text == "")
+            // Not alanı boş mu kontrol et
+            if (string.IsNullOrWhiteSpace(richTxtNotlar.Text))
             {
-                MessageBox.Show("Lütfen not alanını doldurunuz");
+                MessageBox.Show("Lütfen not alanını doldurunuz.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            else
+
+            try
             {
+                // Bağlantıyı aç
                 ConnectionAndStaticTools.OpenConnection();
-                MySqlCommand mySqlCommand = new MySqlCommand("Insert into dbnotlar (ID,Notlar) values (@ID,@Notlar)", ConnectionAndStaticTools.Connection);
-                mySqlCommand.Parameters.AddWithValue("@ID", id);
-                mySqlCommand.Parameters.AddWithValue("@Notlar", richTxtNotlar.Text);
-                mySqlCommand.ExecuteNonQuery();
-                ConnectionAndStaticTools.CloseConnection();
+
+                // SQL sorgusunu hazırla
+                string query = "INSERT INTO dbnotlar (ID, Notlar) VALUES (@ID, @Notlar)";
+
+                using (MySqlCommand mySqlCommand = new MySqlCommand(query, ConnectionAndStaticTools.Connection))
+                {
+                    // Parametreleri ekle
+                    mySqlCommand.Parameters.AddWithValue("@ID", id);
+                    mySqlCommand.Parameters.AddWithValue("@Notlar", richTxtNotlar.Text);
+
+                    // Sorguyu çalıştır
+                    int rowsAffected = mySqlCommand.ExecuteNonQuery();
+
+                    // Eğer kayıt başarılı olduysa kullanıcıya bilgi ver
+                    if (rowsAffected > 0)
+                    {
+                        MessageBox.Show("Notunuz başarıyla kaydedildi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Not kaydedilemedi. Lütfen tekrar deneyin.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+
+                // Not alanını temizle
                 temizle();
-                MessageBox.Show("Notunuz başarıyla kaydedildi.");
+
+                // Danışan bilgilerini getir ve formu kapat
                 DanisanBilgileri danisanBilgileri = new DanisanBilgileri(id);
                 ConnectionAndStaticTools.danisanGetir(danisanBilgileri, id);
                 this.Hide();
             }
-
+            catch (MySqlException ex)
+            {
+                // Veritabanı hatasını özel olarak yakala
+                MessageBox.Show("NOT OLUSTUR BUTON Veritabanı hatası: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                // Genel hata yakalama
+                MessageBox.Show("NOT OLUSTUR BUTON hata oluştu: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // Bağlantıyı kapat
+                ConnectionAndStaticTools.CloseConnection();
+            }
         }
+
 
         private void AltForm_FormClosing(object sender, FormClosingEventArgs e)
         {
