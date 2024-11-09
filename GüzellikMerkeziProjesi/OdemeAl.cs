@@ -29,43 +29,78 @@ namespace GüzellikMerkeziProjesi
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (txtTutar.Text == "" && cbOdTip.Text == "")
+            // Tutar ve Ödeme tipi boş mu kontrol et
+            if (string.IsNullOrWhiteSpace(txtTutar.Text) || string.IsNullOrWhiteSpace(cbOdTip.Text))
             {
-                MessageBox.Show("Lütfen Ödeme tipi ve Tutar alanını doldurunuz");
+                MessageBox.Show("Lütfen Ödeme tipi ve Tutar alanını doldurunuz.", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            else
-            {
-                try
-                {
-                    ConnectionAndStaticTools.OpenConnection();
 
-                    MySqlCommand mySqlCommand = new MySqlCommand("Insert into dbalinanodemeler (ID,Tarih,Aciklama,OdemeTipi,Tutar) values (@ID,@Tarih,@Aciklama,@OdemeTipi,@Tutar)", ConnectionAndStaticTools.Connection);
+            try
+            {
+                // Bağlantıyı aç
+                ConnectionAndStaticTools.OpenConnection();
+
+                // SQL sorgusunu hazırla
+                string query = "INSERT INTO dbalinanodemeler (ID, Tarih, Aciklama, OdemeTipi, Tutar) " +
+                               "VALUES (@ID, @Tarih, @Aciklama, @OdemeTipi, @Tutar)";
+
+                using (MySqlCommand mySqlCommand = new MySqlCommand(query, ConnectionAndStaticTools.Connection))
+                {
+                    // Parametreleri ekle
                     mySqlCommand.Parameters.AddWithValue("@ID", id);
                     mySqlCommand.Parameters.AddWithValue("@Tarih", dateTimePicker1.Value.ToString("yyyy-MM-dd"));
                     mySqlCommand.Parameters.AddWithValue("@Aciklama", richTxtAciklama.Text);
                     mySqlCommand.Parameters.AddWithValue("@OdemeTipi", cbOdTip.Text);
-                    mySqlCommand.Parameters.AddWithValue("@Tutar", float.Parse(txtTutar.Text));
 
-                    mySqlCommand.ExecuteNonQuery();
-                    raporaEkle();
-                    temizle();
-                    MessageBox.Show("Ödeme başarıyla alınmıştır.");
+                    // Tutarı güvenli şekilde parse et
+                    if (float.TryParse(txtTutar.Text, out float tutar))
+                    {
+                        mySqlCommand.Parameters.AddWithValue("@Tutar", tutar);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Geçersiz tutar girişi.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
 
-                    DanisanBilgileri danisanBilgileri = new DanisanBilgileri(id);
-                    ConnectionAndStaticTools.danisanGetir(danisanBilgileri, id);
-                    this.Hide();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Hata: " + ex.Message);
-                }
-                finally
-                {
-                    ConnectionAndStaticTools.CloseConnection();
+                    // Sorguyu çalıştır
+                    int rowsAffected = mySqlCommand.ExecuteNonQuery();
+
+                    // Eğer kayıt başarılı olduysa kullanıcıya bilgi ver
+                    if (rowsAffected > 0)
+                    {
+                        // Başarıyla ödeme kaydedildi
+                        raporaEkle();
+                        temizle();
+                        MessageBox.Show("Ödeme başarıyla alınmıştır.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        // Danışan bilgilerini getir ve formu kapat
+                        DanisanBilgileri danisanBilgileri = new DanisanBilgileri(id);
+                        ConnectionAndStaticTools.danisanGetir(danisanBilgileri, id);
+                        this.Hide();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Ödeme kaydedilemedi. Lütfen tekrar deneyin.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
-
-
+            catch (MySqlException ex)
+            {
+                // Veritabanı hatasını özel olarak yakala
+                MessageBox.Show("ODEME AL BUTON Veritabanı hatası: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                // Genel hata yakalama
+                MessageBox.Show("ODEME AL BUTON hata oluştu: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // Bağlantıyı kapat
+                ConnectionAndStaticTools.CloseConnection();
+            }
         }
 
         private void AltForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -83,27 +118,66 @@ namespace GüzellikMerkeziProjesi
         {
             try
             {
+                // Danışanın isim ve soyadını al
                 string[] isimSoyad = danisanIsimSoyadGetir();
+
+                // Bağlantıyı aç
                 ConnectionAndStaticTools.OpenConnection();
-                MySqlCommand cmd = new MySqlCommand("INSERT INTO dbrapor (ID, `Adi Soyadi`, Tarih, OdemeTipi, Tutar) VALUES (@ID, @AdiSoyadi, @Tarih, @OdemeTipi, @Tutar)", ConnectionAndStaticTools.Connection);
-                cmd.Parameters.AddWithValue("@ID", id);
-                cmd.Parameters.AddWithValue("@AdiSoyadi", isimSoyad[0]);
-                cmd.Parameters.AddWithValue("@Tarih", dateTimePicker1.Value.ToString("yyyy-MM-dd"));
-                cmd.Parameters.AddWithValue("@OdemeTipi", cbOdTip.Text);
-                cmd.Parameters.AddWithValue("@Tutar", float.Parse(txtTutar.Text));
 
-                cmd.ExecuteNonQuery();
+                // SQL komutunu oluştur
+                string query = "INSERT INTO dbrapor (ID, `Adi Soyadi`, Tarih, OdemeTipi, Tutar) " +
+                               "VALUES (@ID, @AdiSoyadi, @Tarih, @OdemeTipi, @Tutar)";
 
+                using (MySqlCommand cmd = new MySqlCommand(query, ConnectionAndStaticTools.Connection))
+                {
+                    // Parametreleri ekle
+                    cmd.Parameters.AddWithValue("@ID", id);
+                    cmd.Parameters.AddWithValue("@AdiSoyadi", isimSoyad[0]);
+                    cmd.Parameters.AddWithValue("@Tarih", dateTimePicker1.Value.ToString("yyyy-MM-dd"));
+                    cmd.Parameters.AddWithValue("@OdemeTipi", cbOdTip.Text);
+
+                    // Tutarı güvenli şekilde parse et
+                    if (float.TryParse(txtTutar.Text, out float tutar))
+                    {
+                        cmd.Parameters.AddWithValue("@Tutar", tutar);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Geçersiz tutar girişi.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // SQL komutunu çalıştır
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    // Başarılı işlem mesajı
+                    if (rowsAffected > 0)
+                    {
+                        MessageBox.Show("Rapor başarıyla eklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Rapor eklenemedi. Lütfen tekrar deneyin.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
             }
-            catch (Exception e)
+            catch (MySqlException ex)
             {
-                MessageBox.Show("Hata:" + e.Message);
+                // Veritabanı hatası yakalama
+                MessageBox.Show("ODEME AL RAPORA EKLE Veritabanı hatası: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                // Genel hata yakalama
+                MessageBox.Show("ODEME AL RAPORA EKLE hata oluştu: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
+                // Bağlantıyı kapat
                 ConnectionAndStaticTools.CloseConnection();
             }
         }
+
 
         private string[] danisanIsimSoyadGetir()
         {
@@ -111,30 +185,45 @@ namespace GüzellikMerkeziProjesi
 
             try
             {
+                // Veritabanı bağlantısını aç
                 ConnectionAndStaticTools.OpenConnection();
+
+                // SQL sorgusunu hazırla
                 MySqlCommand cmd = new MySqlCommand("SELECT Adi, Soyadi FROM dbdanisankayit WHERE DanisanID = @ID", ConnectionAndStaticTools.Connection);
                 cmd.Parameters.AddWithValue("@ID", id);
-                MySqlDataReader reader = cmd.ExecuteReader();
 
-                while (reader.Read())
+                // Veritabanı okuma işlemini using bloğunda yönet
+                using (MySqlDataReader reader = cmd.ExecuteReader())
                 {
-                    string adi = reader["Adi"].ToString();
-                    string soyadi = reader["Soyadi"].ToString();
-                    string isimSoyad = adi + " " + soyadi;
-                    isimSoyadListesi.Add(isimSoyad);
+                    // Okunan her bir satır için işlemler
+                    while (reader.Read())
+                    {
+                        string adi = reader["Adi"].ToString();
+                        string soyadi = reader["Soyadi"].ToString();
+                        string isimSoyad = adi + " " + soyadi;
+                        isimSoyadListesi.Add(isimSoyad);
+                    }
                 }
             }
-            catch (Exception e)
+            catch (MySqlException ex)
             {
-                MessageBox.Show("Hata:" + e.Message);
+                // MySQL hata yönetimi
+                MessageBox.Show("ODEME ALMA DANISAN ISIM SOYAD GETIR Veritabanı hatası: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                // Genel hata yönetimi
+                MessageBox.Show("ODEME ALMA DANISAN ISIM SOYAD GETIR Bir hata oluştu: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
+                // Bağlantıyı kapat
                 ConnectionAndStaticTools.CloseConnection();
             }
 
             return isimSoyadListesi.ToArray();
         }
+
 
 
         private void temizle()
