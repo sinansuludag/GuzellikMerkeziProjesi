@@ -1,7 +1,7 @@
 ﻿using NLog;
 using System;
 
-namespace YourProjectNamespace
+namespace GüzellikMerkeziProjesi
 {
     public static class LoggerService
     {
