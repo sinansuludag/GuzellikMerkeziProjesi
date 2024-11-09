@@ -1,10 +1,10 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
 using System.Windows.Forms;
-using MySql.Data.MySqlClient;
 using System.Linq;
 using System.Collections.Generic;
 using System.Data;
+using System.Text;
 namespace GüzellikMerkeziProjesi
 {
     public partial class YeniPaketTanimlama : Form
@@ -24,21 +24,7 @@ namespace GüzellikMerkeziProjesi
             paketListele();
         }
 
-        public void OpenConnection()
-        {
-            if (ConnectionAndStaticTools.Connection.State == System.Data.ConnectionState.Closed)
-            {
-                ConnectionAndStaticTools.Connection.Open();
-            }
-        }
-
-        public void CloseConnection()
-        {
-            if (ConnectionAndStaticTools.Connection.State == System.Data.ConnectionState.Open)
-            {
-                ConnectionAndStaticTools.Connection.Close();
-            }
-        }
+       
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -72,7 +58,7 @@ namespace GüzellikMerkeziProjesi
 
         private void btnKaydet_Click(object sender, EventArgs e)
         {
-            OpenConnection();
+            ConnectionAndStaticTools.OpenConnection();
 
             try
             {
@@ -148,11 +134,11 @@ namespace GüzellikMerkeziProjesi
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata: " + ex.Message + "\nStack Trace: " + ex.StackTrace);
+                MessageBox.Show("YENI PAKET TANIMLAMA KAYDET BUTON Hata: " + ex.Message);
             }
             finally
             {
-                CloseConnection();
+                ConnectionAndStaticTools.CloseConnection();
             }
 
         }
@@ -168,7 +154,6 @@ namespace GüzellikMerkeziProjesi
             this.Hide(); // Alt formu gizle
         }
 
-        //Bu en son eklediğim fonk bu fonk kayıttablosundaki İslem sütununa ekleme yapıyor
         private void kayitTablosunaEkle()
         {
             try
@@ -176,86 +161,106 @@ namespace GüzellikMerkeziProjesi
                 if (listIslem.Items.Count == 0)
                 {
                     MessageBox.Show("Lütfen paket tanımlayınız!");
+                    return;
                 }
-                else
+
+                string[] islemDizisi = listIslem.Items.OfType<string>().ToArray();
+                string birlesikIslem = string.Join(":", islemDizisi);
+                StringBuilder diziBirlestirGuncelle = new StringBuilder();
+
+                ConnectionAndStaticTools.OpenConnection();
+
+                using (MySqlCommand selectCommand = new MySqlCommand("SELECT * FROM dbdanisankayit WHERE DanisanID = @ID", ConnectionAndStaticTools.Connection))
                 {
-                    string[] islemDizisi = listIslem.Items.OfType<string>().ToArray();
-                    string birlesikIslem = string.Join(":", islemDizisi);
-                    string diziBirlestirGuncelle = "";
-                    OpenConnection();
+                    selectCommand.Parameters.AddWithValue("@ID", id);
 
-                    using (MySqlCommand selectCommand = new MySqlCommand("Select * from dbdanisankayit where DanisanID=@ID", ConnectionAndStaticTools.Connection))
+                    using (MySqlDataReader reader = selectCommand.ExecuteReader())
                     {
-                        selectCommand.Parameters.AddWithValue("@ID", id);
-
-                        using (MySqlDataReader reader = selectCommand.ExecuteReader())
+                        if (reader.HasRows)
                         {
-                            // Okuma işlemi için sorgunun çalıştığından emin olun
-                            if (reader.HasRows)
+                            while (reader.Read())
                             {
-                                while (reader.Read())
+                                string[] dizi1 = reader["İslem"].ToString().Split(':');
+                                foreach (string dizi in dizi1)
                                 {
-                                    string[] dizi1 = reader["İslem"].ToString().Split(':');
-                                    string[] dizi2;
-
-
-                                    foreach (string dizi in dizi1)
-                                    {
-                                        dizi2 = dizi.Split(',');
-                                        string diziBirlestir = string.Join(",", dizi2);
-                                        diziBirlestirGuncelle += diziBirlestir + ":";
-                                    }
-
-                                    diziBirlestirGuncelle += birlesikIslem;
+                                    string[] dizi2 = dizi.Split(',');
+                                    string diziBirlestir = string.Join(",", dizi2);
+                                    diziBirlestirGuncelle.Append(diziBirlestir + ":");
                                 }
-
-                                // Mevcut okuyucuyu kapatın
-                                reader.Close();
-
-                                // Tek bir Update işlemi için bağlantıyı açın, güncelleme işlemini gerçekleştirin ve bağlantıyı kapatın
-                                using (MySqlCommand updateCommand = new MySqlCommand("Update dbdanisankayit set İslem=@İslem where DanisanID=@ID", ConnectionAndStaticTools.Connection))
-                                {
-                                    updateCommand.Parameters.AddWithValue("@ID", id);
-                                    updateCommand.Parameters.AddWithValue("@İslem", diziBirlestirGuncelle);
-                                    updateCommand.ExecuteNonQuery();
-                                }
-
-                                listIslem.Items.Clear();
                             }
-                            else
+
+                            // Mevcut işlemi yeni işlemle birleştiriyoruz
+                            diziBirlestirGuncelle.Append(birlesikIslem);
+
+                            // Veritabanını güncelliyoruz
+                            using (MySqlCommand updateCommand = new MySqlCommand("UPDATE dbdanisankayit SET İslem = @İslem WHERE DanisanID = @ID", ConnectionAndStaticTools.Connection))
                             {
-                                MessageBox.Show("Belirtilen ID için veri bulunamadı.");
+                                updateCommand.Parameters.AddWithValue("@ID", id);
+                                updateCommand.Parameters.AddWithValue("@İslem", diziBirlestirGuncelle.ToString());
+                                updateCommand.ExecuteNonQuery();
                             }
+
+                            // İşlem listesini temizliyoruz
+                            listIslem.Items.Clear();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Belirtilen ID için veri bulunamadı.");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata: " + ex.Message);
+                MessageBox.Show("YENI PAKET TANIMLAMA KAYIT TABLOSUNA EKLE Hata: " + ex.Message);
             }
             finally
             {
-                // Her durumda bağlantıyı kapatın
-                CloseConnection();
+                ConnectionAndStaticTools.CloseConnection();
             }
-
-
         }
+
 
         private void paketListele()
         {
             cbIslem.Items.Clear();
-            OpenConnection();
-            MySqlCommand cmd = new MySqlCommand("Select * from dbpaketler ORDER BY Paket ASC", ConnectionAndStaticTools.Connection);
-            MySqlDataReader reader = cmd.ExecuteReader();
+            MySqlDataReader reader = null;
 
-            while (reader.Read())
+            try
             {
-                cbIslem.Items.Add(reader["Paket"].ToString());
+                // Veritabanı bağlantısını açıyoruz
+                ConnectionAndStaticTools.OpenConnection();
+
+                // Veritabanından veri çekmek için komut oluşturuyoruz
+                MySqlCommand cmd = new MySqlCommand("SELECT * FROM dbpaketler ORDER BY Paket ASC", ConnectionAndStaticTools.Connection);
+
+                // Komutun sonuçlarını okuyoruz
+                reader = cmd.ExecuteReader();
+
+                // Verileri combo box'a ekliyoruz
+                while (reader.Read())
+                {
+                    cbIslem.Items.Add(reader["Paket"].ToString());
+                }
             }
-            CloseConnection();
+            catch (Exception ex)
+            {
+                // Hata durumunda kullanıcıya bilgi veriyoruz
+                MessageBox.Show("YENİ PAKET TANIMLA PAKET LISTELE Hata: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // Veritabanı reader'ını kapatıyoruz
+                if (reader != null)
+                {
+                    reader.Close();
+                }
+
+                // Veritabanı bağlantısını kapatıyoruz
+                ConnectionAndStaticTools.CloseConnection();
+            }
         }
+
 
 
         private void txtTutar_KeyDown(object sender, KeyEventArgs e)

@@ -33,7 +33,7 @@ namespace GüzellikMerkeziProjesi
                 string parola = txtSifre.Text;
 
                 string connectionString = ConfigurationManager.ConnectionStrings["Baglanti"].ConnectionString;
-                var builder = new MySql.Data.MySqlClient.MySqlConnectionStringBuilder(connectionString);
+                var builder = new MySqlConnectionStringBuilder(connectionString);
                 string appConfigUsername = builder.UserID;
                 string appConfigPassword = builder.Password;
                 string veritabaniAdi = builder.Database;
