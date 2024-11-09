@@ -19,23 +19,7 @@ namespace GüzellikMerkeziProjesi
         {
             InitializeComponent();
             this.id = id;
-        }
-
-        public void OpenConnection()
-        {
-            if (ConnectionAndStaticTools.Connection.State == System.Data.ConnectionState.Closed)
-            {
-                ConnectionAndStaticTools.Connection.Open();
-            }
-        }
-
-        public void CloseConnection()
-        {
-            if (ConnectionAndStaticTools.Connection.State == System.Data.ConnectionState.Open)
-            {
-                ConnectionAndStaticTools.Connection.Close();
-            }
-        }
+        }       
 
         private void TutarGuncelle_Load(object sender, EventArgs e)
         {
@@ -45,22 +29,29 @@ namespace GüzellikMerkeziProjesi
 
         private void btnGuncelle_Click(object sender, EventArgs e)
         {
-            if (txtTutar.Text == "")
+            if (string.IsNullOrWhiteSpace(txtTutar.Text))
             {
-                MessageBox.Show("Lütfen tutar giriniz");
+                MessageBox.Show("Lütfen tutar giriniz.");
+                return;
             }
-            else
+
+            // Tutarı geçerli bir decimal değeri olarak parse et
+            if (float.TryParse(txtTutar.Text, out float yeniTutar))
             {
-                if (float.TryParse(txtTutar.Text, out float yeniTutar))
+                try
                 {
-                    // Veritabanında tutarı güncelle
-                    OpenConnection();
-                    MySqlCommand mySqlCommand = new MySqlCommand("UPDATE dbalinanodemeler SET Tutar = @Tutar WHERE ID = @ID and Tarih=@Tarih", ConnectionAndStaticTools.Connection);
+                    // Veritabanı bağlantısını aç
+                    ConnectionAndStaticTools.OpenConnection();
+
+                    // SQL sorgusunu hazırlama
+                    MySqlCommand mySqlCommand = new MySqlCommand("UPDATE dbalinanodemeler SET Tutar = @Tutar WHERE ID = @ID and Tarih = @Tarih", ConnectionAndStaticTools.Connection);
                     mySqlCommand.Parameters.AddWithValue("@ID", id);
                     mySqlCommand.Parameters.AddWithValue("@Tutar", yeniTutar);
                     mySqlCommand.Parameters.AddWithValue("@Tarih", dtpickerTarih.Value.ToString("yyyy-MM-dd"));
+
+                    // SQL sorgusunu çalıştır
                     mySqlCommand.ExecuteNonQuery();
-                    CloseConnection();
+
                     MessageBox.Show("Güncelleme başarıyla yapılmıştır.");
 
                     // DanisanBilgileri formunu aç ve güncellenmiş bilgileri göster
@@ -70,13 +61,28 @@ namespace GüzellikMerkeziProjesi
                     // Bu formu gizle
                     this.Hide();
                 }
-                else
+                catch(MySqlException myExp)
                 {
-                    MessageBox.Show("Lütfen geçerli bir tutar giriniz.");
+                    // Hata yönetimi
+                    MessageBox.Show("TUTAR GUNCELLE Veritabanı Hatası: " + myExp.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                catch (Exception ex)
+                {
+                    // Hata yönetimi
+                    MessageBox.Show("TUTAR GUNCELLE Hata: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    // Bağlantıyı kapat
+                    ConnectionAndStaticTools.CloseConnection();
                 }
             }
-            
+            else
+            {
+                MessageBox.Show("Lütfen geçerli bir tutar giriniz.");
+            }
         }
+
 
 
         private void AltForm_FormClosing(object sender, FormClosingEventArgs e)
