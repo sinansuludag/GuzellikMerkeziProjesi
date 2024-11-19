@@ -27,6 +27,8 @@ namespace GüzellikMerkeziProjesi
             txtId.Text =id.ToString();
         }
 
+       
+
         private void btnGuncelle_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtTutar.Text))

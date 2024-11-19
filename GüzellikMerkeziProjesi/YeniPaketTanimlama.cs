@@ -58,10 +58,12 @@ namespace GüzellikMerkeziProjesi
 
         private void btnKaydet_Click(object sender, EventArgs e)
         {
+          
             ConnectionAndStaticTools.OpenConnection();
 
             try
             {
+
                 bool seansMi = true;
                 bool kacinciSeKontol = true;
                 string[] islemDizisi = listIslem.Items.OfType<string>().ToArray();
@@ -134,13 +136,41 @@ namespace GüzellikMerkeziProjesi
             }
             catch (Exception ex)
             {
-                MessageBox.Show("YENI PAKET TANIMLAMA KAYDET BUTON Hata: " + ex.Message);
+
+                MessageBox.Show(" Tüm alanları doldurunuz: " + ex.Message);
             }
             finally
             {
                 ConnectionAndStaticTools.CloseConnection();
             }
 
+        }
+
+        private int GetNextKacinciGelis()
+        {
+            int kacinciGelis = 500;
+
+            try
+            {
+                // Veritabanından en büyük KacinciGelis değerini al
+                ConnectionAndStaticTools.OpenConnection();
+                MySqlCommand command = new MySqlCommand("SELECT MAX(KacinciGelis) FROM dbpaketbilgisi", ConnectionAndStaticTools.Connection);
+                object result = command.ExecuteScalar();
+                ConnectionAndStaticTools.CloseConnection();
+
+                // Eğer sonuç null değilse ve 100'den küçükse, başlangıç değeri olarak 100 kullan
+                if (result != DBNull.Value && result != null)
+                {
+                    int maxValue = Convert.ToInt32(result);
+                    kacinciGelis = maxValue < 500 ? 100 : maxValue + 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("GET NEXT KACINCI GELIS Hata: " + ex.Message);
+            }
+
+            return kacinciGelis;
         }
 
         private void AltForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -188,27 +218,28 @@ namespace GüzellikMerkeziProjesi
                                     diziBirlestirGuncelle.Append(diziBirlestir + ":");
                                 }
                             }
-
-                            // Mevcut işlemi yeni işlemle birleştiriyoruz
-                            diziBirlestirGuncelle.Append(birlesikIslem);
-
-                            // Veritabanını güncelliyoruz
-                            using (MySqlCommand updateCommand = new MySqlCommand("UPDATE dbdanisankayit SET İslem = @İslem WHERE DanisanID = @ID", ConnectionAndStaticTools.Connection))
-                            {
-                                updateCommand.Parameters.AddWithValue("@ID", id);
-                                updateCommand.Parameters.AddWithValue("@İslem", diziBirlestirGuncelle.ToString());
-                                updateCommand.ExecuteNonQuery();
-                            }
-
-                            // İşlem listesini temizliyoruz
-                            listIslem.Items.Clear();
                         }
                         else
                         {
                             MessageBox.Show("Belirtilen ID için veri bulunamadı.");
+                            return;
                         }
-                    }
+                    } // `reader` burada kapanacak
                 }
+
+                // Mevcut işlemi yeni işlemle birleştiriyoruz
+                diziBirlestirGuncelle.Append(birlesikIslem);
+
+                // Veritabanını güncelliyoruz
+                using (MySqlCommand updateCommand = new MySqlCommand("UPDATE dbdanisankayit SET İslem = @İslem WHERE DanisanID = @ID", ConnectionAndStaticTools.Connection))
+                {
+                    updateCommand.Parameters.AddWithValue("@ID", id);
+                    updateCommand.Parameters.AddWithValue("@İslem", diziBirlestirGuncelle.ToString());
+                    updateCommand.ExecuteNonQuery();
+                }
+
+                // İşlem listesini temizliyoruz
+                listIslem.Items.Clear();
             }
             catch (Exception ex)
             {
@@ -219,6 +250,7 @@ namespace GüzellikMerkeziProjesi
                 ConnectionAndStaticTools.CloseConnection();
             }
         }
+
 
 
         private void paketListele()

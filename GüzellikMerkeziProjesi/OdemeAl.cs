@@ -148,17 +148,8 @@ namespace GüzellikMerkeziProjesi
                     }
 
                     // SQL komutunu çalıştır
-                    int rowsAffected = cmd.ExecuteNonQuery();
+                     cmd.ExecuteNonQuery();
 
-                    // Başarılı işlem mesajı
-                    if (rowsAffected > 0)
-                    {
-                        MessageBox.Show("Rapor başarıyla eklendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Rapor eklenemedi. Lütfen tekrar deneyin.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
                 }
             }
             catch (MySqlException ex)

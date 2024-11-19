@@ -26,21 +26,7 @@ namespace GüzellikMerkeziProjesi
         {
             txtID.Text = id.ToString();
         }
-        public void OpenConnection()
-        {
-            if (ConnectionAndStaticTools.Connection.State == System.Data.ConnectionState.Closed)
-            {
-                ConnectionAndStaticTools.Connection.Open();
-            }
-        }
-
-        public void CloseConnection()
-        {
-            if (ConnectionAndStaticTools.Connection.State == System.Data.ConnectionState.Open)
-            {
-                ConnectionAndStaticTools.Connection.Close();
-            }
-        }
+      
 
         private void btnSat_Click(object sender, EventArgs e)
         {
@@ -65,7 +51,7 @@ namespace GüzellikMerkeziProjesi
             try
             {
                 // Veritabanı bağlantısını aç
-                OpenConnection();
+                ConnectionAndStaticTools.OpenConnection();
 
                 // Veritabanına ürün bilgilerini ekleme işlemi
                 MySqlCommand mySqlCommand = new MySqlCommand("INSERT INTO dbpaketbilgisi (ID, Tarih, Aciklama, Durum, Tutar, KacinciGelis) VALUES (@ID, @Tarih, @Aciklama, @Durum, @Tutar, @KacinciGelis)", ConnectionAndStaticTools.Connection);
@@ -88,13 +74,16 @@ namespace GüzellikMerkeziProjesi
             finally
             {
                 // Veritabanı bağlantısını kapat
-                CloseConnection();
+                ConnectionAndStaticTools.CloseConnection();
             }
 
             // İşlem tamamlandıktan sonra ek işlemler
             oncekiTutarGetir();
             temizle();
             MessageBox.Show("Ürün başarıyla satıldı.");
+            DanisanBilgileri danisanBilgileri = new DanisanBilgileri(id);
+            ConnectionAndStaticTools.danisanGetir(danisanBilgileri, id);
+            this.Hide();
         }
 
 
@@ -105,10 +94,10 @@ namespace GüzellikMerkeziProjesi
             try
             {
                 // Veritabanından en büyük KacinciGelis değerini al
-                OpenConnection();
-                MySqlCommand command = new MySqlCommand("SELECT MAX(KacinciGelis) FROM dbpaketbilgisi", ConnectionAndStaticTools.Connection);
+                ConnectionAndStaticTools.OpenConnection();
+                MySqlCommand command = new MySqlCommand("SELECT MAX(KacinciGelis) FROM dbpaketbilgisi", ConnectionAndStaticTools.Connection);   
                 object result = command.ExecuteScalar();
-                CloseConnection();
+                ConnectionAndStaticTools.CloseConnection() ;
 
                 // Eğer sonuç null değilse ve 100'den küçükse, başlangıç değeri olarak 100 kullan
                 if (result != DBNull.Value && result != null)
@@ -140,25 +129,19 @@ namespace GüzellikMerkeziProjesi
 
         public void oncekiTutarGetir()
         {
-            MySqlConnection connection = null;
-            MySqlDataReader reader = null;
+
             List<string> dizi = new List<string>();
             string diziBirlestirGuncelle = "";
 
             try
-            {
-                connection = ConnectionAndStaticTools.Connection;
-
-                using (MySqlCommand cmd = new MySqlCommand("SELECT * FROM dbdanisankayit WHERE DanisanID = @DanisanId", connection))
+            {      
+                using (MySqlCommand cmd = new MySqlCommand("SELECT * FROM dbdanisankayit WHERE DanisanID = @DanisanId", ConnectionAndStaticTools.Connection))
                 {
                     cmd.Parameters.AddWithValue("@DanisanId", id);
 
-                    if (connection.State != ConnectionState.Open)
-                    {
-                        connection.Open();
-                    }
+                    ConnectionAndStaticTools.OpenConnection();
 
-                    reader = cmd.ExecuteReader();
+                    MySqlDataReader reader = cmd.ExecuteReader();
 
                     while (reader.Read())
                     {
@@ -183,20 +166,16 @@ namespace GüzellikMerkeziProjesi
 
                             // Dizi elemanlarını birleştiriyoruz
                             string birlesikString = string.Join(":", dizi);
-                            diziBirlestirGuncelle += ":" + birlesikString;
-
-                            // Veritabanı bağlantısını kapatıyoruz
-                            CloseConnection();
-
-                            // Toplam tutarı güncelleme
-                            toplamTutarGuncelle(diziBirlestirGuncelle);
+                            diziBirlestirGuncelle += ":" + birlesikString;                         
+                            
                         }
                         else
                         {
                             MessageBox.Show("Lütfen geçerli bir sayı giriniz");
                         }
-                    }
+                    }         
                 }
+                
             }
             catch (Exception ex)
             {
@@ -205,36 +184,26 @@ namespace GüzellikMerkeziProjesi
             }
             finally
             {
-                // Veritabanı okuma işlemi bittiğinde, reader'ı kapatıyoruz
-                if (reader != null)
-                {
-                    reader.Close();
-                }
 
                 // Bağlantıyı kapatıyoruz
-                if (connection != null && connection.State == ConnectionState.Open)
-                {
-                    connection.Close();
-                }
+                ConnectionAndStaticTools.CloseConnection();
+                // Toplam tutarı güncelleme
+                toplamTutarGuncelle(diziBirlestirGuncelle);
             }
         }
 
 
 
-
         public void toplamTutarGuncelle(string islem)
         {
-            MySqlConnection connection = null;
-            MySqlCommand mySqlCommand = null;
 
             try
             {
                 // Veritabanı bağlantısını açıyoruz
-                connection = ConnectionAndStaticTools.Connection;
-                OpenConnection();
+                ConnectionAndStaticTools.OpenConnection();
 
                 // Güncelleme sorgusunu hazırlıyoruz
-                mySqlCommand = new MySqlCommand("UPDATE dbdanisankayit SET İslem = @İslem WHERE DanisanID = @ID", connection);
+                MySqlCommand mySqlCommand = new MySqlCommand("UPDATE dbdanisankayit SET İslem = @İslem WHERE DanisanID = @ID", ConnectionAndStaticTools.Connection);
 
                 // Parametreleri ekliyoruz
                 mySqlCommand.Parameters.AddWithValue("@ID", id);
@@ -246,21 +215,14 @@ namespace GüzellikMerkeziProjesi
             catch (Exception ex)
             {
                 // Hata durumunda mesaj gösteriyoruz
-                MessageBox.Show("Hata: " + ex.Message);
+                MessageBox.Show("URUN SAT TOPLAM TUTAR GUNCELLE Hata olustu: " + ex.Message);
             }
             finally
             {
                 // Bağlantıyı kapatıyoruz
-                if (connection != null && connection.State == System.Data.ConnectionState.Open)
-                {
-                    CloseConnection();
-                }
+                ConnectionAndStaticTools.CloseConnection();
 
-                // Command nesnesini temizliyoruz
-                if (mySqlCommand != null)
-                {
-                    mySqlCommand.Dispose();
-                }
+               
             }
         }
 
