@@ -1147,12 +1147,6 @@ namespace GüzellikMerkeziProjesi
             this.Hide();
         }
 
-        private void düzenleToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            TutarGuncelle tutarGuncelle = new TutarGuncelle(id);
-            tutarGuncelle.Show();  
-            this.Hide();
-        }
 
  
     }
