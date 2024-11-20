@@ -194,7 +194,6 @@
     <Compile Include="Kasa.Designer.cs">
       <DependentUpon>Kasa.cs</DependentUpon>
     </Compile>
-    <Compile Include="LoggerService.cs" />
     <Compile Include="NotOlustur.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -268,7 +267,6 @@
     <EmbeddedResource Include="YeniPaketTanimlama.resx">
       <DependentUpon>YeniPaketTanimlama.cs</DependentUpon>
     </EmbeddedResource>
-    <None Include="NLog.config" />
     <None Include="packages.config" />
     <None Include="Properties\DataSources\Anasayfa.datasource" />
     <None Include="Properties\DataSources\ConnectionTools.datasource" />
