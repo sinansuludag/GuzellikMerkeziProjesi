@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GüzellikMerkeziProjesi", "GüzellikMerkeziProjesi\GüzellikMerkeziProjesi.csproj", "{A07C4B58-AADB-4467-BA21-AF3A59D6467E}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "DermalizLastVersionSetup", "DermalizLastVersionSetup\DermalizLastVersionSetup.vdproj", "{DAFCAB09-6AF1-4C1F-8B84-8CCB6C133102}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,8 @@ Global
 		{A07C4B58-AADB-4467-BA21-AF3A59D6467E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A07C4B58-AADB-4467-BA21-AF3A59D6467E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A07C4B58-AADB-4467-BA21-AF3A59D6467E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAFCAB09-6AF1-4C1F-8B84-8CCB6C133102}.Debug|Any CPU.ActiveCfg = Debug
+		{DAFCAB09-6AF1-4C1F-8B84-8CCB6C133102}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
