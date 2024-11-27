@@ -146,32 +146,7 @@ namespace GüzellikMerkeziProjesi
 
         }
 
-        private int GetNextKacinciGelis()
-        {
-            int kacinciGelis = 500;
-
-            try
-            {
-                // Veritabanından en büyük KacinciGelis değerini al
-                ConnectionAndStaticTools.OpenConnection();
-                MySqlCommand command = new MySqlCommand("SELECT MAX(KacinciGelis) FROM dbpaketbilgisi", ConnectionAndStaticTools.Connection);
-                object result = command.ExecuteScalar();
-                ConnectionAndStaticTools.CloseConnection();
-
-                // Eğer sonuç null değilse ve 100'den küçükse, başlangıç değeri olarak 100 kullan
-                if (result != DBNull.Value && result != null)
-                {
-                    int maxValue = Convert.ToInt32(result);
-                    kacinciGelis = maxValue < 500 ? 100 : maxValue + 1;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("GET NEXT KACINCI GELIS Hata: " + ex.Message);
-            }
-
-            return kacinciGelis;
-        }
+       
 
         private void AltForm_FormClosing(object sender, FormClosingEventArgs e)
         {

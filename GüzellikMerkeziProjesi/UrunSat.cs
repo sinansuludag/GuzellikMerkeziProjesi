@@ -89,7 +89,7 @@ namespace GüzellikMerkeziProjesi
 
         private int GetNextKacinciGelis()
         {
-            int kacinciGelis = 100;
+            int kacinciGelis = 1000;
 
             try
             {
@@ -103,8 +103,12 @@ namespace GüzellikMerkeziProjesi
                 if (result != DBNull.Value && result != null)
                 {
                     int maxValue = Convert.ToInt32(result);
-                    kacinciGelis = maxValue < 100 ? 100 : maxValue + 1;
+                    kacinciGelis = maxValue < 1000 ? maxValue+1000 : maxValue + 1;
                 }
+            }
+            catch(MySqlException mySqlEx)
+            {
+                MessageBox.Show("GET NEXT KACINCI GELIS Veritabani Hata: " + mySqlEx.Message);
             }
             catch (Exception ex)
             {

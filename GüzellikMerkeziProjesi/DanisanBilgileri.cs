@@ -967,112 +967,85 @@ namespace GüzellikMerkeziProjesi
         {
             try
             {
-                if (e.ColumnIndex == 2) // Tarih sütunu (2)
+                if (e.ColumnIndex == 2) // Tarih sütunu (index 2)
                 {
                     var cellValue = dataGridView1.Rows[e.RowIndex].Cells["Tarih"].Value;
 
-                    // Hücre değeri boşsa geçerli bir değer yok demektir
-                    if (cellValue == DBNull.Value || cellValue == null || string.IsNullOrEmpty(cellValue.ToString()))
+                    // Eğer hücre boş bırakılmışsa, veritabanında tarihi null olarak güncelle
+                    if (cellValue == DBNull.Value || cellValue == null || string.IsNullOrWhiteSpace(cellValue.ToString()))
                     {
-                        //MessageBox.Show("Tarih hücresini boş bırakamazsınız. Lütfen geçerli bir tarih girin.");
-                        return; // Hücreyi boş bırakmak geçerli değildir
+                        int satirId = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["ID"].Value);
+                        int kacinciGelis = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["KacinciGelis"].Value);
+                        string aciklama = dataGridView1.Rows[e.RowIndex].Cells["Aciklama"].Value?.ToString() ?? string.Empty;
+
+                        // Veritabanında tarihi null olarak güncelle
+                        GuncelleTarihSatir(satirId, null, kacinciGelis, aciklama);
+                        return;
                     }
 
                     DateTime yeniTarih;
-
-                    // DateTime.TryParse kullanarak geçerli tarih formatını kontrol et
                     bool isValidDate = DateTime.TryParse(cellValue.ToString().Trim(), out yeniTarih);
 
                     if (isValidDate)
                     {
-                        // Geçerli tarih ise işlemi yap
                         int satirId = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["ID"].Value);
                         int kacinciGelis = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["KacinciGelis"].Value);
-                        string aciklama = dataGridView1.Rows[e.RowIndex].Cells["Aciklama"].Value.ToString();
-                        string yeniDurum = dataGridView1.Rows[e.RowIndex].Cells["Durum"].Value.ToString();
+                        string aciklama = dataGridView1.Rows[e.RowIndex].Cells["Aciklama"].Value?.ToString() ?? string.Empty;
 
-                        // Veritabanı güncellemesi yapılır
+                        // Geçerli tarih formatıysa veritabanını güncelle
                         GuncelleTarihSatir(satirId, yeniTarih, kacinciGelis, aciklama);
                     }
                     else
                     {
-                        // Geçerli tarih formatı sağlanmazsa hücreyi temizle
                         MessageBox.Show("Lütfen geçerli bir tarih formatı girin.");
                         dataGridView1.Rows[e.RowIndex].Cells["Tarih"].Value = DBNull.Value; // Hücreyi temizle
                     }
                 }
-                else if (e.ColumnIndex == 5) // Durum sütunu (index 5)
-                {
-                    // Durum güncelleme işlemi yapılır
-                    int kacinciGelisSayac = 1000;
-                    object cellValue = dataGridView1.Rows[e.RowIndex].Cells[1].Value;
-                    int gelis = (cellValue != DBNull.Value && cellValue != null && !string.IsNullOrEmpty(cellValue.ToString())) ? Convert.ToInt32(cellValue) : kacinciGelisSayac;
-
-                    int kacinciGelis = gelis;
-                    var cellValue2 = dataGridView1.Rows[e.RowIndex].Cells[4].Value;
-                    string aciklama;
-
-                    if (cellValue2 != DBNull.Value && cellValue2 != null)
-                    {
-                        aciklama = dataGridView1.Rows[e.RowIndex].Cells["Aciklama"].Value.ToString();
-                        string yeniDurum = dataGridView1.Rows[e.RowIndex].Cells["Durum"].Value.ToString();
-                        int satirId = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["ID"].Value);
-
-                        // Durum güncelleme işlemi
-                        durumGuncelle(satirId, yeniDurum, kacinciGelis, aciklama);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Durum hücresini boş bırakamazsınız. Lütfen geçerli bir durum girin.");
-                    }
-                }
-                else
-                {
-                    // Diğer sütunlar için işlemler yapılabilir
-                }
             }
             catch (MySqlException ex)
             {
-                // Veritabanı hatası için genel mesaj
-                MessageBox.Show("CELL END EDIT TARIH EKLEME Veritabanı hatası oluştu: " + ex.Message);
+                MessageBox.Show("CELL END EDIT Veritabanı hatası: " + ex.Message);
             }
             catch (Exception ex)
             {
-                // Diğer hatalar için genel mesaj
-                MessageBox.Show("CELL END EDIT TARIH EKLEME Bir hata oluştu: " + ex.Message);
+                MessageBox.Show("CELL END EDIT Hata: " + ex.Message);
             }
         }
 
-        private void GuncelleTarihSatir(int satirId, DateTime yeniTarih, int KacinciGelis, string aciklama)
+
+        private void GuncelleTarihSatir(int satirId, DateTime? yeniTarih, int KacinciGelis, string aciklama)
         {
             try
             {
                 ConnectionAndStaticTools.OpenConnection();
 
-                // Veritabanında güncelleme sorgusu
-                string updateQuery = "UPDATE dbpaketbilgisi SET Tarih = @YeniTarih WHERE ID = @ID and KacinciGelis=@KacinciGelis and Aciklama=@Aciklama";
+                string updateQuery = "UPDATE dbpaketbilgisi SET Tarih = @YeniTarih WHERE ID = @ID AND KacinciGelis = @KacinciGelis AND Aciklama = @Aciklama";
 
-                // MySqlCommand nesnesini 'using' bloğunda kullanarak otomatik olarak bellekten temizlenmesini sağla
                 using (MySqlCommand cmd = new MySqlCommand(updateQuery, ConnectionAndStaticTools.Connection))
                 {
-                    // Parametreleri ekle
-                    cmd.Parameters.AddWithValue("@YeniTarih", yeniTarih);
+                    // Eğer tarih null ise, parametreyi DBNull olarak ayarla
+                    if (yeniTarih.HasValue)
+                    {
+                        cmd.Parameters.AddWithValue("@YeniTarih", yeniTarih.Value);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@YeniTarih", DBNull.Value);
+                    }
+
                     cmd.Parameters.AddWithValue("@ID", satirId);
                     cmd.Parameters.AddWithValue("@KacinciGelis", KacinciGelis);
                     cmd.Parameters.AddWithValue("@Aciklama", aciklama);
 
-                    // SQL sorgusunu çalıştır
                     cmd.ExecuteNonQuery();
                 }
             }
             catch (MySqlException sqlEx)
             {
-                // Veritabanı hatası varsa yakala
                 MessageBox.Show("GUNCELLE TARIH SATIR Veritabanı hatası: " + sqlEx.Message);
             }
             catch (Exception ex)
             {
-                // Diğer hataları yakala
                 MessageBox.Show("GUNCELLE TARIH SATIR Hata: " + ex.Message);
             }
             finally
@@ -1080,6 +1053,7 @@ namespace GüzellikMerkeziProjesi
                 ConnectionAndStaticTools.CloseConnection();
             }
         }
+
 
 
         private void durumGuncelle(int satirId, string yeniDurum, int KacinciGelis, string aciklama)
