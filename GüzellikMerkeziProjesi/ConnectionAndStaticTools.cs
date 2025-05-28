@@ -1,59 +1,66 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Data;
+using System.IO;
 using MySql.Data.MySqlClient;
 
 namespace GüzellikMerkeziProjesi
 {
-    public class ConnectionAndStaticTools
+    public static class ConnectionAndStaticTools
     {
-        static MySqlConnection connection=new MySqlConnection(ConfigurationManager.ConnectionStrings["Baglanti"].ConnectionString);
-        public static MySqlConnection Connection
+        private static string connectionString = ConfigurationManager.ConnectionStrings["Baglanti"].ConnectionString;
+
+        public static MySqlConnection GetConnection()
         {
-            get { return connection; }
+            return new MySqlConnection(connectionString);
         }
 
-
-        // Bağlantıyı açan metod
-        public static void OpenConnection()
-        {
-            try
-            {
-                if (Connection.State == System.Data.ConnectionState.Closed)
-                {
-                    Connection.Open();
-                }
-            }
-            catch (MySqlException ex)
-            {
-                // Veritabanı bağlantısı ile ilgili hata
-                Console.WriteLine($"VERİTABANI BAGLANTİSİ ACİLMADİ: {ex.Message}");
-                throw;  // Hata yönetimini üst katmana iletmek için
-            }
-        }
-
-        // Bağlantıyı kapatan metod
-        public static void CloseConnection()
+        public static void ExecuteWithConnection(Action<MySqlConnection> action)
         {
             try
             {
-                if (Connection.State == System.Data.ConnectionState.Open)
+                using (MySqlConnection conn = GetConnection())
                 {
-                    Connection.Close();
+                    conn.Open();
+                    action(conn);
                 }
             }
-            catch (MySqlException ex)
+            catch (Exception ex)
             {
-                // Bağlantı kapama hatası
-                Console.WriteLine($"VERİTABANI BAGLANTİSİ KAPATİLMADİ: {ex.Message}");
-                throw;  // Hata yönetimini üst katmana iletmek için
+                LogError(ex);
+                throw;
             }
         }
 
-        public static void danisanGetir(DanisanBilgileri danisanBilgileri,int id)
+        //public static T ExecuteWithConnection<T>(Func<MySqlConnection, T> func)
+        //{
+        //    try
+        //    {
+        //        using (MySqlConnection conn = GetConnection())
+        //        {
+        //            conn.Open();
+        //            return func(conn);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogError(ex);
+        //        throw;
+        //    }
+        //}
+
+        private static void LogError(Exception ex)
+        {
+            string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
+            using (StreamWriter writer = new StreamWriter(logPath, true))
+            {
+                writer.WriteLine("-------- " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " --------");
+                writer.WriteLine(ex.ToString());
+                writer.WriteLine();
+            }
+        }
+
+        public static void danisanGetir(DanisanBilgileri danisanBilgileri, int id)
         {
             danisanBilgileri.DanisanBilgileriniGoster(id);
             danisanBilgileri.seansBilgileriniGetir(id);
@@ -63,5 +70,6 @@ namespace GüzellikMerkeziProjesi
             danisanBilgileri.alinanOdemeBilgisiniGetir(id);
             danisanBilgileri.Show();
         }
+        
     }
 }

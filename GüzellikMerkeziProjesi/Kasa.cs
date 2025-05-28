@@ -38,28 +38,32 @@ namespace GüzellikMerkeziProjesi
         {
             try
             {
-                // SQL sorgusunu oluştur
-                string query = "SELECT * FROM dbrapor WHERE Tarih BETWEEN @BaslangicTarihi AND @BitisTarihi";
-
-                // MySqlDataAdapter nesnesini oluştur ve sorguyu belirt
-                MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter(query, ConnectionAndStaticTools.Connection);
-
-                // Parametreleri ekleyerek filtreleme yap
-                mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@BaslangicTarihi", DateTime.Parse(basDataTimePic.Text));
-                mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@BitisTarihi", DateTime.Parse(bitisDataTimePic.Text));
-
-                // Verileri al ve bir DataTable'e doldur
-                DataTable dt = new DataTable();
-                mySqlDataAdapter.Fill(dt);
-
-                // Verileri DataGridView'e aktar
-                dataGridView1.DataSource = dt;
-                toplamOdemeGetir();
-                // Eğer kayıt yoksa kullanıcıya bilgi ver
-                if (dt.Rows.Count == 0)
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
                 {
-                    MessageBox.Show("Belirtilen tarih aralığında kayıt bulunamadı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
+                    // SQL sorgusunu oluştur
+                    string query = "SELECT * FROM dbrapor WHERE Tarih BETWEEN @BaslangicTarihi AND @BitisTarihi";
+
+                    // MySqlDataAdapter nesnesini oluştur ve sorguyu belirt
+                    MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter(query, conn);
+
+                    // Parametreleri ekleyerek filtreleme yap
+                    mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@BaslangicTarihi", DateTime.Parse(basDataTimePic.Text));
+                    mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@BitisTarihi", DateTime.Parse(bitisDataTimePic.Text));
+
+                    // Verileri al ve bir DataTable'e doldur
+                    DataTable dt = new DataTable();
+                    mySqlDataAdapter.Fill(dt);
+
+                    // Verileri DataGridView'e aktar
+                    dataGridView1.DataSource = dt;
+                    toplamOdemeGetir();
+                    // Eğer kayıt yoksa kullanıcıya bilgi ver
+                    if (dt.Rows.Count == 0)
+                    {
+                        MessageBox.Show("Belirtilen tarih aralığında kayıt bulunamadı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                });
+               
             }
             catch(MySqlException sqlEx)
             {
@@ -78,30 +82,33 @@ namespace GüzellikMerkeziProjesi
 
             try
             {
-                ConnectionAndStaticTools.OpenConnection();
-                string query = "SELECT Tutar FROM dbrapor WHERE Tarih BETWEEN @BaslangicTarihi AND @BitisTarihi";
-
-                using (MySqlCommand mySqlCommand = new MySqlCommand(query, ConnectionAndStaticTools.Connection))
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
                 {
-                    // Parametreleri ekle
-                    mySqlCommand.Parameters.AddWithValue("@BaslangicTarihi", DateTime.Parse(basDataTimePic.Text));
-                    mySqlCommand.Parameters.AddWithValue("@BitisTarihi", DateTime.Parse(bitisDataTimePic.Text));
+                    string query = "SELECT Tutar FROM dbrapor WHERE Tarih BETWEEN @BaslangicTarihi AND @BitisTarihi";
 
-                    using (MySqlDataReader reader = mySqlCommand.ExecuteReader())
+                    using (MySqlCommand mySqlCommand = new MySqlCommand(query, conn))
                     {
-                        while (reader.Read())
+                        // Parametreleri ekle
+                        mySqlCommand.Parameters.AddWithValue("@BaslangicTarihi", DateTime.Parse(basDataTimePic.Text));
+                        mySqlCommand.Parameters.AddWithValue("@BitisTarihi", DateTime.Parse(bitisDataTimePic.Text));
+
+                        using (MySqlDataReader reader = mySqlCommand.ExecuteReader())
                         {
-                            // Tutar değerini kontrol et ve toplam tutara ekle
-                            if (float.TryParse(reader["Tutar"]?.ToString(), out float tutar))
+                            while (reader.Read())
                             {
-                                toplam += tutar;
+                                // Tutar değerini kontrol et ve toplam tutara ekle
+                                if (float.TryParse(reader["Tutar"]?.ToString(), out float tutar))
+                                {
+                                    toplam += tutar;
+                                }
                             }
                         }
                     }
-                }
 
-                // Toplam tutarı TextBox'a yazdır
-                txtTutar.Text = toplam.ToString();
+                    // Toplam tutarı TextBox'a yazdır
+                    txtTutar.Text = toplam.ToString();
+                });
+               
             }
             catch (MySqlException ex)
             {
@@ -111,10 +118,7 @@ namespace GüzellikMerkeziProjesi
             {
                 MessageBox.Show("KASA TOPLAM ODEME GETIR Bir hata oluştu: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            finally
-            {
-                ConnectionAndStaticTools.CloseConnection();
-            }
+   
         }
 
 
@@ -122,40 +126,42 @@ namespace GüzellikMerkeziProjesi
         {
             try
             {
-                // Bağlantıyı aç
-                ConnectionAndStaticTools.OpenConnection();
-
-                // SQL sorgusunu oluştur
-                string query = "SELECT * FROM dbrapor WHERE Tarih BETWEEN @BaslangicTarihi AND @BitisTarihi";
-
-                // MySqlDataAdapter nesnesini oluştur ve sorguyu belirt
-                using (MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter(query, ConnectionAndStaticTools.Connection))
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
                 {
-                    // Parametreleri ekle
-                    mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@BaslangicTarihi", DateTime.Parse(basDataTimePic.Text));
-                    mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@BitisTarihi", DateTime.Parse(bitisDataTimePic.Text));
+                    // SQL sorgusunu oluştur
+                    string query = "SELECT * FROM dbrapor WHERE Tarih BETWEEN @BaslangicTarihi AND @BitisTarihi";
 
-                    // Verileri al ve bir DataTable'e doldur
-                    DataTable dt = new DataTable();
-                    mySqlDataAdapter.Fill(dt);
+                    // MySqlDataAdapter nesnesini oluştur ve sorguyu belirt
+                    MySqlDataAdapter mySqlDataAdapter = new MySqlDataAdapter(query, conn);
+                    
+                        // Parametreleri ekle
+                        mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@BaslangicTarihi", DateTime.Parse(basDataTimePic.Text));
+                        mySqlDataAdapter.SelectCommand.Parameters.AddWithValue("@BitisTarihi", DateTime.Parse(bitisDataTimePic.Text));
 
-                    // DataGridView'i güncelle
-                    dataGridView1.DataSource = dt;
-                    dataGridView1.BackgroundColor = Color.White;
-                    dataGridView1.DefaultCellStyle.SelectionBackColor = Color.FromArgb(0, 139, 139);
+                        // Verileri al ve bir DataTable'e doldur
+                        DataTable dt = new DataTable();
+                        mySqlDataAdapter.Fill(dt);
 
-                    // Kolon sıralamasını devre dışı bırak
-                    foreach (DataGridViewColumn column in dataGridView1.Columns)
-                    {
-                        column.SortMode = DataGridViewColumnSortMode.NotSortable;
-                    }
+                        // DataGridView'i güncelle
+                        dataGridView1.DataSource = dt;
+                        dataGridView1.BackgroundColor = Color.White;
+                        dataGridView1.DefaultCellStyle.SelectionBackColor = Color.FromArgb(0, 139, 139);
 
-                    // Eğer veri yoksa kullanıcıya bilgi ver
-                    if (dt.Rows.Count == 0)
-                    {
-                        MessageBox.Show("Belirtilen tarih aralığında kayıt bulunamadı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                }
+                        // Kolon sıralamasını devre dışı bırak
+                        foreach (DataGridViewColumn column in dataGridView1.Columns)
+                        {
+                            column.SortMode = DataGridViewColumnSortMode.NotSortable;
+                        }
+
+                        // Eğer veri yoksa kullanıcıya bilgi ver
+                        if (dt.Rows.Count == 0)
+                        {
+                            MessageBox.Show("Belirtilen tarih aralığında kayıt bulunamadı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    
+                });
+
+                
             }
             catch (MySqlException ex)
             {
@@ -165,11 +171,7 @@ namespace GüzellikMerkeziProjesi
             {
                 MessageBox.Show("KASA RAPOR LISTESINI GETIR hata oluştu: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            finally
-            {
-                // Bağlantıyı kapat
-                ConnectionAndStaticTools.CloseConnection();
-            }
+
         }
 
 

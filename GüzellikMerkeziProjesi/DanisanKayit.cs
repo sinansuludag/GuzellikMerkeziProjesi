@@ -80,49 +80,53 @@ namespace GüzellikMerkeziProjesi
 
         private void btnKaydet_Click(object sender, EventArgs e)
         {
-            ConnectionAndStaticTools.OpenConnection();
+           
 
             try
             {
-
-                string telefonNumarasi = txtTel.Text;
-
-                string[] islemDizisi = listIslem.Items.OfType<string>().ToArray();
-                string birlesikIslem = string.Join(":", islemDizisi);
-
-                if (string.IsNullOrWhiteSpace(txtAdi.Text) || string.IsNullOrWhiteSpace(txtSoyadi.Text) || string.IsNullOrWhiteSpace(txtTel.Text) || string.IsNullOrWhiteSpace(cbCinsiyet.Text) || string.IsNullOrWhiteSpace(birlesikIslem))
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
                 {
-                    MessageBox.Show("Lütfen gerekli alanları doldurunuz!");
-                    return;
-                }
-                // Telefon numarasının geçerli olup olmadığını kontrol et
-                if (!TelefonNumarasiGecerliMi(telefonNumarasi))
-                {
-                    return;
-                }
+                    string telefonNumarasi = txtTel.Text;
 
-                MySqlCommand cmdDanisan = new MySqlCommand("INSERT INTO dbdanisankayit (Adi, Soyadi, Telefon, Cinsiyet, Referans, İslem) VALUES (@Adi, @Soyadi, @Telefon, @Cinsiyet, @Referans, @İslem)", ConnectionAndStaticTools.Connection);
-                cmdDanisan.Parameters.AddWithValue("@Adi", txtAdi.Text);
-                cmdDanisan.Parameters.AddWithValue("@Soyadi", txtSoyadi.Text);
-                cmdDanisan.Parameters.AddWithValue("@Telefon", txtTel.Text);
-                cmdDanisan.Parameters.AddWithValue("@Cinsiyet", cbCinsiyet.Text);
-                cmdDanisan.Parameters.AddWithValue("@Referans", txtReferans.Text);
-                cmdDanisan.Parameters.AddWithValue("@İslem", birlesikIslem);
+                    string[] islemDizisi = listIslem.Items.OfType<string>().ToArray();
+                    string birlesikIslem = string.Join(":", islemDizisi);
 
-                cmdDanisan.ExecuteNonQuery();
+                    if (string.IsNullOrWhiteSpace(txtAdi.Text) || string.IsNullOrWhiteSpace(txtSoyadi.Text) || string.IsNullOrWhiteSpace(txtTel.Text) || string.IsNullOrWhiteSpace(cbCinsiyet.Text) || string.IsNullOrWhiteSpace(birlesikIslem))
+                    {
+                        MessageBox.Show("Lütfen gerekli alanları doldurunuz!");
+                        return;
+                    }
+                    // Telefon numarasının geçerli olup olmadığını kontrol et
+                    if (!TelefonNumarasiGecerliMi(telefonNumarasi))
+                    {
+                        return;
+                    }
 
-                int danisanID;
+                    MySqlCommand cmdDanisan = new MySqlCommand("INSERT INTO dbdanisankayit (Adi, Soyadi, Telefon, Cinsiyet, Referans, İslem) VALUES (@Adi, @Soyadi, @Telefon, @Cinsiyet, @Referans, @İslem)", conn);
+                    cmdDanisan.Parameters.AddWithValue("@Adi", txtAdi.Text);
+                    cmdDanisan.Parameters.AddWithValue("@Soyadi", txtSoyadi.Text);
+                    cmdDanisan.Parameters.AddWithValue("@Telefon", txtTel.Text);
+                    cmdDanisan.Parameters.AddWithValue("@Cinsiyet", cbCinsiyet.Text);
+                    cmdDanisan.Parameters.AddWithValue("@Referans", txtReferans.Text);
+                    cmdDanisan.Parameters.AddWithValue("@İslem", birlesikIslem);
 
-                if (int.TryParse(cmdDanisan.LastInsertedId.ToString(), out danisanID))
-                {
-                    paketBilgisineGonder(danisanID);
-                    MessageBox.Show("Kayıtlar başarıyla eklenmiştir.");
-                    temizle();
-                }
-                else
-                {
-                    MessageBox.Show("DanisanID alınamadı.");
-                }
+                    cmdDanisan.ExecuteNonQuery();
+
+                    int danisanID;
+
+                    if (int.TryParse(cmdDanisan.LastInsertedId.ToString(), out danisanID))
+                    {
+                        paketBilgisineGonder(danisanID);
+                        MessageBox.Show("Kayıtlar başarıyla eklenmiştir.");
+                        temizle();
+                    }
+                    else
+                    {
+                        MessageBox.Show("DanisanID alınamadı.");
+                    }
+                });
+
+                
             }
             catch(MySqlException ex)
             {
@@ -132,84 +136,84 @@ namespace GüzellikMerkeziProjesi
             {
                 MessageBox.Show("DANISAN KAYDET Hata: " + ex.Message);
             }
-            finally
-            {
-                ConnectionAndStaticTools.CloseConnection();
-            }
         }
 
         public void paketBilgisineGonder(int danisanId)
         {
-            ConnectionAndStaticTools.OpenConnection();
+            
 
             try
             {
-                bool seansMi = true;
-                bool kacinciSeKontol=true;
-                string[] islemDizisi = listIslem.Items.OfType<string>().ToArray();
-                string birlesikIslem = string.Join(":", islemDizisi);
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
+                {
+                    bool seansMi = true;
+                    bool kacinciSeKontol = true;
+                    string[] islemDizisi = listIslem.Items.OfType<string>().ToArray();
+                    string birlesikIslem = string.Join(":", islemDizisi);
 
-                int sayac = 1;
-                int kacinciGelis = 0;
+                    int sayac = 1;
+                    int kacinciGelis = 0;
 
-                string[] islemDizisi2 = birlesikIslem.Split(':');
-                string[] sonIslem;
+                    string[] islemDizisi2 = birlesikIslem.Split(':');
+                    string[] sonIslem;
 
 
-                foreach (string paketDizi in islemDizisi2)
-                {   
-
-                    sonIslem = paketDizi.Split(',');
-                    string islem = sonIslem[0];
-                    int seans = Convert.ToInt32(sonIslem[1]);
-                    float ucret = float.Parse(sonIslem[2]);
-                    for (int i = 1; i <= seans; i++)
+                    foreach (string paketDizi in islemDizisi2)
                     {
-                        kacinciGelis++;
-                        string seansKontrol= $"{sayac}.Seans";
-                       
-                        
-                        if(seansMi==true && kacinciSeKontol==true)
+
+                        sonIslem = paketDizi.Split(',');
+                        string islem = sonIslem[0];
+                        int seans = Convert.ToInt32(sonIslem[1]);
+                        float ucret = float.Parse(sonIslem[2]);
+                        for (int i = 1; i <= seans; i++)
                         {
-                            seansKontrol = $"{sayac}.Seans";
+                            kacinciGelis++;
+                            string seansKontrol = $"{sayac}.Seans";
+
+
+                            if (seansMi == true && kacinciSeKontol == true)
+                            {
+                                seansKontrol = $"{sayac}.Seans";
+
+                            }
+                            else if (seansMi == false && kacinciSeKontol == true)
+                            {
+                                seansKontrol = $"{sayac}.Kontrol";
+                                sayac++;
+                            }
+                            if (i == seans)
+                            {
+                                sayac = 1;
+                            }
+
+                            if (i % 2 == 0)
+                            {
+                                kacinciSeKontol = false;
+                            }
+                            else
+                            {
+                                kacinciSeKontol = true;
+                            }
+                            seansMi = true ? false : true;
+
+                            MySqlCommand cmdPaket = new MySqlCommand("INSERT INTO dbpaketbilgisi (ID, KacinciGelis,`Seans/Kontrol`, Aciklama, Durum, Tutar) VALUES (@ID,@KacinciGelis, @SeansKontrol, @Aciklama, @Durum, @Tutar)", conn);
+                            cmdPaket.Parameters.AddWithValue("@ID", danisanId);
+                            cmdPaket.Parameters.AddWithValue("@KacinciGelis", kacinciGelis);
+                            cmdPaket.Parameters.AddWithValue("@SeansKontrol", seansKontrol);
+                            cmdPaket.Parameters.AddWithValue("@Aciklama", $"{islem}{i}");
+                            cmdPaket.Parameters.AddWithValue("@Durum", "Bekliyor");
+                            cmdPaket.Parameters.AddWithValue("@Tutar", ucret / seans);
+
+                            cmdPaket.ExecuteNonQuery();
+
 
                         }
-                        else if(seansMi==false && kacinciSeKontol == true)
-                        {
-                            seansKontrol = $"{sayac}.Kontrol";
-                            sayac++;    
-                        }
-                        if (i == seans)
-                        {
-                            sayac = 1;
-                        }
 
-                        if (i % 2 == 0)
-                        {
-                            kacinciSeKontol = false;
-                        }
-                        else
-                        {
-                            kacinciSeKontol = true;
-                        }
-                        seansMi = true ? false : true;
-
-                        MySqlCommand cmdPaket = new MySqlCommand("INSERT INTO dbpaketbilgisi (ID, KacinciGelis,`Seans/Kontrol`, Aciklama, Durum, Tutar) VALUES (@ID,@KacinciGelis, @SeansKontrol, @Aciklama, @Durum, @Tutar)", ConnectionAndStaticTools.Connection);
-                        cmdPaket.Parameters.AddWithValue("@ID", danisanId);
-                        cmdPaket.Parameters.AddWithValue("@KacinciGelis", kacinciGelis);
-                        cmdPaket.Parameters.AddWithValue("@SeansKontrol", seansKontrol);
-                        cmdPaket.Parameters.AddWithValue("@Aciklama", $"{islem}{i}");
-                        cmdPaket.Parameters.AddWithValue("@Durum", "Bekliyor");
-                        cmdPaket.Parameters.AddWithValue("@Tutar", ucret / seans);
-
-                        cmdPaket.ExecuteNonQuery();
-
-                        
                     }
 
-                }
+                    temizle();
 
-                temizle();
+                });
                 
             }
             catch (MySqlException ex)
@@ -220,10 +224,7 @@ namespace GüzellikMerkeziProjesi
             {
                 MessageBox.Show("PAKET BİLGİSİNE GONDER Hata: " + ex.Message );
             }
-            finally
-            {
-                ConnectionAndStaticTools.CloseConnection();
-            }
+
         }
 
 
@@ -239,28 +240,31 @@ namespace GüzellikMerkeziProjesi
                 cbIslem.Items.Clear();
 
                 // Bağlantıyı aç
-                ConnectionAndStaticTools.OpenConnection();
-
-                // SQL komutunu tanımla
-                cmd = new MySqlCommand("SELECT * FROM dbpaketler ORDER BY Paket ASC", ConnectionAndStaticTools.Connection);
-
-                // Veri okuyucu kullanımı
-                reader = cmd.ExecuteReader();
-
-                // Okuma işlemi sırasında hata kontrolü
-                if (reader.HasRows)
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
                 {
-                    while (reader.Read())
+                    // SQL komutunu tanımla
+                    cmd = new MySqlCommand("SELECT * FROM dbpaketler ORDER BY Paket ASC", conn);
+
+                    // Veri okuyucu kullanımı
+                    reader = cmd.ExecuteReader();
+
+                    // Okuma işlemi sırasında hata kontrolü
+                    if (reader.HasRows)
                     {
-                        // "Paket" kolonundan veri al ve ComboBox'a ekle
-                        cbIslem.Items.Add(reader["Paket"].ToString());
+                        while (reader.Read())
+                        {
+                            // "Paket" kolonundan veri al ve ComboBox'a ekle
+                            cbIslem.Items.Add(reader["Paket"].ToString());
+                        }
                     }
-                }
-                else
-                {
-                    // Hiç veri bulunamadıysa uyarı ver
-                    MessageBox.Show("Veritabanında paket bulunamadı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
+                    else
+                    {
+                        // Hiç veri bulunamadıysa uyarı ver
+                        MessageBox.Show("Veritabanında paket bulunamadı.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                });
+
+               
             }
             catch (MySqlException sqlEx)
             {
@@ -286,7 +290,6 @@ namespace GüzellikMerkeziProjesi
                     cmd.Dispose();
                 }
 
-                ConnectionAndStaticTools.CloseConnection();
             }
         }
 

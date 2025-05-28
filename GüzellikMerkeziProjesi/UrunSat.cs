@@ -51,17 +51,20 @@ namespace GüzellikMerkeziProjesi
             try
             {
                 // Veritabanı bağlantısını aç
-                ConnectionAndStaticTools.OpenConnection();
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
+                {
+                    // Veritabanına ürün bilgilerini ekleme işlemi
+                    MySqlCommand mySqlCommand = new MySqlCommand("INSERT INTO dbpaketbilgisi (ID, Tarih, Aciklama, Durum, Tutar, KacinciGelis) VALUES (@ID, @Tarih, @Aciklama, @Durum, @Tutar, @KacinciGelis)", conn);
+                    mySqlCommand.Parameters.AddWithValue("@ID", id);
+                    mySqlCommand.Parameters.AddWithValue("@Tarih", tarihDataTimePic.Value.ToString("yyyy-MM-dd"));  // Tarih formatı ekleniyor
+                    mySqlCommand.Parameters.AddWithValue("@Aciklama", txtUrunAdi.Text);
+                    mySqlCommand.Parameters.AddWithValue("@Durum", ""); // Durum boş bırakılıyor
+                    mySqlCommand.Parameters.AddWithValue("@Tutar", tutar);  // Fiyatı float olarak ekliyoruz
+                    mySqlCommand.Parameters.AddWithValue("@KacinciGelis", kacinciGelis);  // KacinciGelis değeri ekleniyor
+                    mySqlCommand.ExecuteNonQuery();
+                });
 
-                // Veritabanına ürün bilgilerini ekleme işlemi
-                MySqlCommand mySqlCommand = new MySqlCommand("INSERT INTO dbpaketbilgisi (ID, Tarih, Aciklama, Durum, Tutar, KacinciGelis) VALUES (@ID, @Tarih, @Aciklama, @Durum, @Tutar, @KacinciGelis)", ConnectionAndStaticTools.Connection);
-                mySqlCommand.Parameters.AddWithValue("@ID", id);
-                mySqlCommand.Parameters.AddWithValue("@Tarih", tarihDataTimePic.Value.ToString("yyyy-MM-dd"));  // Tarih formatı ekleniyor
-                mySqlCommand.Parameters.AddWithValue("@Aciklama", txtUrunAdi.Text);
-                mySqlCommand.Parameters.AddWithValue("@Durum", ""); // Durum boş bırakılıyor
-                mySqlCommand.Parameters.AddWithValue("@Tutar", tutar);  // Fiyatı float olarak ekliyoruz
-                mySqlCommand.Parameters.AddWithValue("@KacinciGelis", kacinciGelis);  // KacinciGelis değeri ekleniyor
-                mySqlCommand.ExecuteNonQuery();
+                
             }
             catch(MySqlException sqlEx)
             {
@@ -71,12 +74,7 @@ namespace GüzellikMerkeziProjesi
             {
                 MessageBox.Show("SAT BUTON Hata: " + ex.Message);
             }
-            finally
-            {
-                // Veritabanı bağlantısını kapat
-                ConnectionAndStaticTools.CloseConnection();
-            }
-
+          
             // İşlem tamamlandıktan sonra ek işlemler
             oncekiTutarGetir();
             temizle();
@@ -93,18 +91,21 @@ namespace GüzellikMerkeziProjesi
 
             try
             {
-                // Veritabanından en büyük KacinciGelis değerini al
-                ConnectionAndStaticTools.OpenConnection();
-                MySqlCommand command = new MySqlCommand("SELECT MAX(KacinciGelis) FROM dbpaketbilgisi", ConnectionAndStaticTools.Connection);   
-                object result = command.ExecuteScalar();
-                ConnectionAndStaticTools.CloseConnection() ;
 
-                // Eğer sonuç null değilse ve 100'den küçükse, başlangıç değeri olarak 100 kullan
-                if (result != DBNull.Value && result != null)
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
                 {
-                    int maxValue = Convert.ToInt32(result);
-                    kacinciGelis = maxValue < 1000 ? maxValue+1000 : maxValue + 1;
-                }
+                    MySqlCommand command = new MySqlCommand("SELECT MAX(KacinciGelis) FROM dbpaketbilgisi", conn);
+                    object result = command.ExecuteScalar();
+
+
+                    // Eğer sonuç null değilse ve 100'den küçükse, başlangıç değeri olarak 100 kullan
+                    if (result != DBNull.Value && result != null)
+                    {
+                        int maxValue = Convert.ToInt32(result);
+                        kacinciGelis = maxValue < 1000 ? maxValue + 1000 : maxValue + 1;
+                    }
+                });
+                
             }
             catch(MySqlException mySqlEx)
             {
@@ -138,47 +139,50 @@ namespace GüzellikMerkeziProjesi
             string diziBirlestirGuncelle = "";
 
             try
-            {      
-                using (MySqlCommand cmd = new MySqlCommand("SELECT * FROM dbdanisankayit WHERE DanisanID = @DanisanId", ConnectionAndStaticTools.Connection))
+            {
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
                 {
-                    cmd.Parameters.AddWithValue("@DanisanId", id);
+                   MySqlCommand cmd = new MySqlCommand("SELECT * FROM dbdanisankayit WHERE DanisanID = @DanisanId", conn);
+                    
+                        cmd.Parameters.AddWithValue("@DanisanId", id);
 
-                    ConnectionAndStaticTools.OpenConnection();
 
-                    MySqlDataReader reader = cmd.ExecuteReader();
 
-                    while (reader.Read())
-                    {
-                        string islem = reader["İslem"].ToString();
-                        string[] islemDizi = islem.Split(':');
-                        string[] diziVirgulleAyir;
-                        string ayrilanDizi = string.Empty;
+                        MySqlDataReader reader = cmd.ExecuteReader();
 
-                        foreach (string s in islemDizi)
+                        while (reader.Read())
                         {
-                            diziVirgulleAyir = s.Split(',');
-                            ayrilanDizi = string.Join(",", diziVirgulleAyir);
-                            diziBirlestirGuncelle += ":" + ayrilanDizi;
-                        }
+                            string islem = reader["İslem"].ToString();
+                            string[] islemDizi = islem.Split(':');
+                            string[] diziVirgulleAyir;
+                            string ayrilanDizi = string.Empty;
 
-                        // Fiyat kontrolü
-                        if (float.TryParse(txtUrunFiyati.Text, out float ucret))
-                        {
-                            // Paket bilgisi oluşturuluyor
-                            PaketBilgisi paketBilgisi = new PaketBilgisi("", 0, ucret);
-                            dizi.Add(paketBilgisi.ToString());
+                            foreach (string s in islemDizi)
+                            {
+                                diziVirgulleAyir = s.Split(',');
+                                ayrilanDizi = string.Join(",", diziVirgulleAyir);
+                                diziBirlestirGuncelle += ":" + ayrilanDizi;
+                            }
 
-                            // Dizi elemanlarını birleştiriyoruz
-                            string birlesikString = string.Join(":", dizi);
-                            diziBirlestirGuncelle += ":" + birlesikString;                         
-                            
-                        }
-                        else
-                        {
-                            MessageBox.Show("Lütfen geçerli bir sayı giriniz");
-                        }
-                    }         
-                }
+                            // Fiyat kontrolü
+                            if (float.TryParse(txtUrunFiyati.Text, out float ucret))
+                            {
+                                // Paket bilgisi oluşturuluyor
+                                PaketBilgisi paketBilgisi = new PaketBilgisi("", 0, ucret);
+                                dizi.Add(paketBilgisi.ToString());
+
+                                // Dizi elemanlarını birleştiriyoruz
+                                string birlesikString = string.Join(":", dizi);
+                                diziBirlestirGuncelle += ":" + birlesikString;
+
+                            }
+                            else
+                            {
+                                MessageBox.Show("Lütfen geçerli bir sayı giriniz");
+                            }
+                        }    
+
+                });
                 
             }
             catch (Exception ex)
@@ -188,9 +192,6 @@ namespace GüzellikMerkeziProjesi
             }
             finally
             {
-
-                // Bağlantıyı kapatıyoruz
-                ConnectionAndStaticTools.CloseConnection();
                 // Toplam tutarı güncelleme
                 toplamTutarGuncelle(diziBirlestirGuncelle);
             }
@@ -203,31 +204,28 @@ namespace GüzellikMerkeziProjesi
 
             try
             {
-                // Veritabanı bağlantısını açıyoruz
-                ConnectionAndStaticTools.OpenConnection();
 
-                // Güncelleme sorgusunu hazırlıyoruz
-                MySqlCommand mySqlCommand = new MySqlCommand("UPDATE dbdanisankayit SET İslem = @İslem WHERE DanisanID = @ID", ConnectionAndStaticTools.Connection);
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
+                {
+                    // Güncelleme sorgusunu hazırlıyoruz
+                    MySqlCommand mySqlCommand = new MySqlCommand("UPDATE dbdanisankayit SET İslem = @İslem WHERE DanisanID = @ID", conn);
 
-                // Parametreleri ekliyoruz
-                mySqlCommand.Parameters.AddWithValue("@ID", id);
-                mySqlCommand.Parameters.AddWithValue("@İslem", islem);
+                    // Parametreleri ekliyoruz
+                    mySqlCommand.Parameters.AddWithValue("@ID", id);
+                    mySqlCommand.Parameters.AddWithValue("@İslem", islem);
 
-                // Sorguyu çalıştırıyoruz
-                mySqlCommand.ExecuteNonQuery();
+                    // Sorguyu çalıştırıyoruz
+                    mySqlCommand.ExecuteNonQuery();
+                });
+
+                
             }
             catch (Exception ex)
             {
                 // Hata durumunda mesaj gösteriyoruz
                 MessageBox.Show("URUN SAT TOPLAM TUTAR GUNCELLE Hata olustu: " + ex.Message);
             }
-            finally
-            {
-                // Bağlantıyı kapatıyoruz
-                ConnectionAndStaticTools.CloseConnection();
 
-               
-            }
         }
 
 

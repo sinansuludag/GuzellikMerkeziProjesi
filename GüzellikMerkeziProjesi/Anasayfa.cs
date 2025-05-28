@@ -49,11 +49,9 @@ namespace GüzellikMerkeziProjesi
                     return;
                 }
 
-                try
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
                 {
-                    ConnectionAndStaticTools.OpenConnection();
-
-                    MySqlCommand checkCmd = new MySqlCommand("SELECT COUNT(*) FROM dbpaketler WHERE Paket = @Paket", ConnectionAndStaticTools.Connection);
+                    MySqlCommand checkCmd = new MySqlCommand("SELECT COUNT(*) FROM dbpaketler WHERE Paket = @Paket", conn);
                     checkCmd.Parameters.AddWithValue("@Paket", txtPaketEkle.Text);
                     int existingCount = Convert.ToInt32(checkCmd.ExecuteScalar());
 
@@ -63,30 +61,18 @@ namespace GüzellikMerkeziProjesi
                         return;
                     }
 
-                    MySqlCommand insertCmd = new MySqlCommand("INSERT INTO dbpaketler (Paket) VALUES (@Paket)", ConnectionAndStaticTools.Connection);
+                    MySqlCommand insertCmd = new MySqlCommand("INSERT INTO dbpaketler (Paket) VALUES (@Paket)", conn);
                     insertCmd.Parameters.AddWithValue("@Paket", txtPaketEkle.Text);
                     insertCmd.ExecuteNonQuery();
 
                     MessageBox.Show("Paket başarıyla eklendi!");
                     temizle();
                     paketListele();
-                }
-                catch (MySqlException sqlEx)
-                {
-                    MessageBox.Show($"PAKET EKLEME Veritabanı hatası olustu: {sqlEx.Message}");
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("PAKET EKLEME Hata olustu olustu: " + ex.Message);
-                }
-                finally
-                {
-                    ConnectionAndStaticTools.CloseConnection();
-                }
+                });
             }
             catch (Exception ex)
             {
-                MessageBox.Show("PAKET EKLEME Genel bir hata: " + ex.Message);
+                MessageBox.Show("PAKET EKLEME Hata oluştu: " + ex.Message);
             }
         }
 
@@ -95,29 +81,22 @@ namespace GüzellikMerkeziProjesi
             cbPakListe.Items.Clear();
             try
             {
-                ConnectionAndStaticTools.OpenConnection();
-
-                MySqlCommand cmd = new MySqlCommand("SELECT * FROM dbpaketler ORDER BY Paket ASC", ConnectionAndStaticTools.Connection);
-
-                using (MySqlDataReader reader = cmd.ExecuteReader())
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
                 {
-                    while (reader.Read())
-                    {
-                        cbPakListe.Items.Add(reader["Paket"].ToString());
-                    }
-                }
-            }
-            catch (MySqlException sqlEx)
-            {
-                MessageBox.Show($" PAKET LİSTELEME Veritabanı hatası: {sqlEx.Message}");
+                    MySqlCommand cmd = new MySqlCommand("SELECT * FROM dbpaketler ORDER BY Paket ASC", conn);
+
+                   MySqlDataReader reader = cmd.ExecuteReader();
+                    
+                        while (reader.Read())
+                        {
+                            cbPakListe.Items.Add(reader["Paket"].ToString());
+                        }
+                    
+                });
             }
             catch (Exception ex)
             {
-                MessageBox.Show(" PAKET LİSTELEME hata oluştu: " + ex.Message);
-            }
-            finally
-            {
-                ConnectionAndStaticTools.CloseConnection();
+                MessageBox.Show("PAKET LİSTELEME hata oluştu: " + ex.Message);
             }
         }
 
@@ -136,29 +115,15 @@ namespace GüzellikMerkeziProjesi
                 {
                     string selectedValue = cbPakListe.SelectedItem.ToString();
 
-                    try
+                    ConnectionAndStaticTools.ExecuteWithConnection(conn =>
                     {
-                        ConnectionAndStaticTools.OpenConnection();
-
-                        MySqlCommand cmd = new MySqlCommand("DELETE FROM dbpaketler WHERE Paket = @Paket", ConnectionAndStaticTools.Connection);
+                        MySqlCommand cmd = new MySqlCommand("DELETE FROM dbpaketler WHERE Paket = @Paket", conn);
                         cmd.Parameters.AddWithValue("@Paket", selectedValue);
                         cmd.ExecuteNonQuery();
 
                         MessageBox.Show("Paket başarıyla silindi!");
                         cbPakListe.Items.Remove(selectedValue);
-                    }
-                    catch (MySqlException sqlEx)
-                    {
-                        MessageBox.Show($"PAKET SİLME Veritabanı hatası: {sqlEx.Message}");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("PAKET SİLME hata oluştu: " + ex.Message);
-                    }
-                    finally
-                    {
-                        ConnectionAndStaticTools.CloseConnection();
-                    }
+                    });
                 }
                 else
                 {
@@ -167,7 +132,7 @@ namespace GüzellikMerkeziProjesi
             }
             catch (Exception ex)
             {
-                MessageBox.Show("PAKET SİLME Genel bir hata: " + ex.Message);
+                MessageBox.Show("PAKET SİLME hata oluştu: " + ex.Message);
             }
         }
 

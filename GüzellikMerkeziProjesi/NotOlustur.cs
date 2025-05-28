@@ -35,39 +35,41 @@ namespace GüzellikMerkeziProjesi
 
             try
             {
-                // Bağlantıyı aç
-                ConnectionAndStaticTools.OpenConnection();
-
-                // SQL sorgusunu hazırla
-                string query = "INSERT INTO dbnotlar (ID, Notlar) VALUES (@ID, @Notlar)";
-
-                using (MySqlCommand mySqlCommand = new MySqlCommand(query, ConnectionAndStaticTools.Connection))
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
                 {
-                    // Parametreleri ekle
-                    mySqlCommand.Parameters.AddWithValue("@ID", id);
-                    mySqlCommand.Parameters.AddWithValue("@Notlar", richTxtNotlar.Text);
+                    // SQL sorgusunu hazırla
+                    string query = "INSERT INTO dbnotlar (ID, Notlar) VALUES (@ID, @Notlar)";
 
-                    // Sorguyu çalıştır
-                    int rowsAffected = mySqlCommand.ExecuteNonQuery();
-
-                    // Eğer kayıt başarılı olduysa kullanıcıya bilgi ver
-                    if (rowsAffected > 0)
+                    using (MySqlCommand mySqlCommand = new MySqlCommand(query, conn))
                     {
-                        MessageBox.Show("Notunuz başarıyla kaydedildi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Not kaydedilemedi. Lütfen tekrar deneyin.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
+                        // Parametreleri ekle
+                        mySqlCommand.Parameters.AddWithValue("@ID", id);
+                        mySqlCommand.Parameters.AddWithValue("@Notlar", richTxtNotlar.Text);
 
-                // Not alanını temizle
-                temizle();
+                        // Sorguyu çalıştır
+                        int rowsAffected = mySqlCommand.ExecuteNonQuery();
 
-                // Danışan bilgilerini getir ve formu kapat
-                DanisanBilgileri danisanBilgileri = new DanisanBilgileri(id);
-                ConnectionAndStaticTools.danisanGetir(danisanBilgileri, id);
-                this.Hide();
+                        // Eğer kayıt başarılı olduysa kullanıcıya bilgi ver
+                        if (rowsAffected > 0)
+                        {
+                            MessageBox.Show("Notunuz başarıyla kaydedildi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Not kaydedilemedi. Lütfen tekrar deneyin.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+
+                    // Not alanını temizle
+                    temizle();
+
+                    // Danışan bilgilerini getir ve formu kapat
+                    DanisanBilgileri danisanBilgileri = new DanisanBilgileri(id);
+                    ConnectionAndStaticTools.danisanGetir(danisanBilgileri, id);
+                    this.Hide();
+                });
+
+              
             }
             catch (MySqlException ex)
             {
@@ -79,11 +81,7 @@ namespace GüzellikMerkeziProjesi
                 // Genel hata yakalama
                 MessageBox.Show("NOT OLUSTUR BUTON hata oluştu: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            finally
-            {
-                // Bağlantıyı kapat
-                ConnectionAndStaticTools.CloseConnection();
-            }
+   
         }
 
 

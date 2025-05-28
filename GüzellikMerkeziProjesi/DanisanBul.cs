@@ -28,30 +28,34 @@ namespace GüzellikMerkeziProjesi
         {
             try
             {
-                // Veritabanı sorgusu ve adapter
-                MySqlDataAdapter adapter = new MySqlDataAdapter("SELECT * FROM dbdanisankayit ORDER BY Adi ASC;", ConnectionAndStaticTools.Connection);
+                ConnectionAndStaticTools.ExecuteWithConnection(conn=>
+                {
+                    // Veritabanı sorgusu ve adapter
+                    MySqlDataAdapter adapter = new MySqlDataAdapter("SELECT * FROM dbdanisankayit ORDER BY Adi ASC;",conn);
 
-                // DataTable'ı doldur
- 
-                adapter.Fill(dt);
+                    // DataTable'ı doldur
 
-                // DataGridView'e veri kaynağını ata
-                dataGridView1.DataSource = dt;
+                    adapter.Fill(dt);
 
-                // İstenmeyen sütunları gizle
-                dataGridView1.Columns["İslem"].Visible = false;
+                    // DataGridView'e veri kaynağını ata
+                    dataGridView1.DataSource = dt;
 
-                // Hücre seçildiğinde arka plan rengini değiştir
-                dataGridView1.DefaultCellStyle.SelectionBackColor = Color.FromArgb(0, 139, 139);
-                dataGridView1.BackgroundColor = Color.White;
+                    // İstenmeyen sütunları gizle
+                    dataGridView1.Columns["İslem"].Visible = false;
 
-                // Sıralamayı kaldır
-                dataGridView1.Columns["DanisanID"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                dataGridView1.Columns["Adi"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                dataGridView1.Columns["Soyadi"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                dataGridView1.Columns["Telefon"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                dataGridView1.Columns["Referans"].SortMode = DataGridViewColumnSortMode.NotSortable;
-                dataGridView1.Columns["Cinsiyet"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                    // Hücre seçildiğinde arka plan rengini değiştir
+                    dataGridView1.DefaultCellStyle.SelectionBackColor = Color.FromArgb(0, 139, 139);
+                    dataGridView1.BackgroundColor = Color.White;
+
+                    // Sıralamayı kaldır
+                    dataGridView1.Columns["DanisanID"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                    dataGridView1.Columns["Adi"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                    dataGridView1.Columns["Soyadi"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                    dataGridView1.Columns["Telefon"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                    dataGridView1.Columns["Referans"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                    dataGridView1.Columns["Cinsiyet"].SortMode = DataGridViewColumnSortMode.NotSortable;
+                });
+                
             }
             catch (MySqlException ex)
             {
@@ -72,21 +76,20 @@ namespace GüzellikMerkeziProjesi
             int kayitSayisi = 0;
             try
             {
-                ConnectionAndStaticTools.OpenConnection(); // Bağlantıyı açma işlemi burada gerçekleştiriliyor olmalıdır.
+                ConnectionAndStaticTools.ExecuteWithConnection(conn =>
+                {
+                    // Veritabanından kayıt sayısını almak için gerekli sorguyu hazırlayın
+                    string query = "SELECT COUNT(*) FROM dbdanisankayit";
+                    // Veritabanı sorgusunu çalıştırarak kayıt sayısını alın
+                    MySqlCommand command = new MySqlCommand(query, conn);
+                    kayitSayisi = Convert.ToInt32(command.ExecuteScalar());
+                });
 
-                // Veritabanından kayıt sayısını almak için gerekli sorguyu hazırlayın
-                string query = "SELECT COUNT(*) FROM dbdanisankayit"; 
-                // Veritabanı sorgusunu çalıştırarak kayıt sayısını alın
-                MySqlCommand command = new MySqlCommand(query, ConnectionAndStaticTools.Connection);
-                kayitSayisi = Convert.ToInt32(command.ExecuteScalar());
+                
             }
             catch (Exception ex)
             {
                 MessageBox.Show("KAYIT SAYISI GETIR Hata:"+ex.Message);
-            }
-            finally
-            {
-                ConnectionAndStaticTools.CloseConnection();
             }
 
             return kayitSayisi;
